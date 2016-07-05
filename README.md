@@ -41,9 +41,9 @@ software 7-Zip is used.
 
 ## Screenshots
 
-![no stick](http://mcmilk.de/projects/USB-Backup/t_stick_no.png "lala1")
-![with stick](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png "todo1")
-![reg. stick](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png "todo2")
+- no stick: ![no stick](http://mcmilk.de/projects/USB-Backup/t_stick_no.png)
+- with stick: ![with stick](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png)
+- registred stick: ![reg. stick](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png)
 
 
 ## Requirements

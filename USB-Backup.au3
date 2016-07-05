@@ -1,6 +1,5 @@
 ﻿#NoTrayIcon
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Version=Beta
 #AutoIt3Wrapper_Icon=USB-Backup.ico
 #AutoIt3Wrapper_Compression=4
 #AutoIt3Wrapper_UseX64=y
@@ -17,8 +16,6 @@
 #AutoIt3Wrapper_Res_Icon_Add=icos\04.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\05.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\06.ico
-#AutoIt3Wrapper_Run_After=echo %fileversion% > prog.txt
-#AutoIt3Wrapper_Run_After=mpress -s -r -q USB-Backup.exe
 #AutoIt3Wrapper_Run_Tidy=y
 #AutoIt3Wrapper_Run_Au3Stripper=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -37,7 +34,7 @@
 #ce
 
 ; ctime: /TR 2014-04-16
-; mtime: /TR 2016-07-04
+; mtime: /TR 2016-07-05
 
 Opt("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2 + 4)
