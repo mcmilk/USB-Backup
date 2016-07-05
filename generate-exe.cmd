@@ -1,9 +1,9 @@
 @echo off
 rem vim:set tw=200
 
-set A=C:\Program Files (x86)\AutoIt3
 set A=C:\Programme\AutoIt3
-set B=Z:\autoit\USB-Backup\src
+set A=C:\Program Files (x86)\AutoIt3
+set B=Z:\autoit\USB-Backup
 cd %B%
 
 echo usb-backup 32bit...

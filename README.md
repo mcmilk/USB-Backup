@@ -65,24 +65,14 @@ software 7-Zip is used.
   windows - it is seen then in the system tray
 - the per user configuration can be found in this folder: %APPDATA%\USB-Backup
 
-
 ## Download
 
-- https://mcmilk.de/projects/USB-Backup/dl/latest/
-
-    7-Zip ZStd Homepage
-    7-Zip Homepage
-    AutoIt Homepage
-    other Backup Software
-    Google Search: Windows USB Backup 
+- [32bit Version](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup.exe)
+- [64bit Version](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup_x64.exe)
 
 ## See Also
 
-- [7-Zip] Homepage
-- [7-Zip Zstd] Homepage
-- [USB-Backup] Homepage
-
-
-[7-Zip]: http://www.7-zip.org/
-[7-Zip Zstd]: https://github.com/mcmilk/7-Zip-Zstd
-[USB-Backup]: https://github.com/mcmilk/USB-Backup
+- [7-Zip Homepage](http://www.7-zip.org/)
+- [7-Zip Zstd Homepage](https://github.com/mcmilk/7-Zip-Zstd)
+- [USB-Backup Homepage](https://mcmilk.de/projects/USB-Backup)
+- [AutoIT Homepage](https://www.autoitscript.com)

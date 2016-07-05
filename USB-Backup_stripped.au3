@@ -5,36 +5,15 @@ Opt("TrayIconHide", 1)
 Opt("TrayAutoPause", 0)
 Opt("WinTitleMatchMode", 2)
 Opt("WinDetectHiddenText", 1)
-Global Enum $ARRAYFILL_FORCE_DEFAULT, $ARRAYFILL_FORCE_SINGLEITEM, $ARRAYFILL_FORCE_INT, $ARRAYFILL_FORCE_NUMBER, $ARRAYFILL_FORCE_PTR, $ARRAYFILL_FORCE_HWND, $ARRAYFILL_FORCE_STRING
-Global Enum $ARRAYUNIQUE_NOCOUNT, $ARRAYUNIQUE_COUNT
-Global Enum $ARRAYUNIQUE_AUTO, $ARRAYUNIQUE_FORCE32, $ARRAYUNIQUE_FORCE64, $ARRAYUNIQUE_MATCH, $ARRAYUNIQUE_DISTINCT
-Func _ArrayAdd(ByRef $aArray, $vValue, $iStart = 0, $sDelim_Item = "|", $sDelim_Row = @CRLF, $iForce = $ARRAYFILL_FORCE_DEFAULT)
+Func _ArrayAdd(ByRef $avArray, $vValue, $iStart = 0, $sDelim_Item = "|", $sDelim_Row = @CRLF, $hDataType = 0)
 If $iStart = Default Then $iStart = 0
 If $sDelim_Item = Default Then $sDelim_Item = "|"
 If $sDelim_Row = Default Then $sDelim_Row = @CRLF
-If $iForce = Default Then $iForce = $ARRAYFILL_FORCE_DEFAULT
-If Not IsArray($aArray) Then Return SetError(1, 0, -1)
-Local $iDim_1 = UBound($aArray, 1)
-Local $hDataType = 0
-Switch $iForce
-Case $ARRAYFILL_FORCE_INT
-$hDataType = Int
-Case $ARRAYFILL_FORCE_NUMBER
-$hDataType = Number
-Case $ARRAYFILL_FORCE_PTR
-$hDataType = Ptr
-Case $ARRAYFILL_FORCE_HWND
-$hDataType = Hwnd
-Case $ARRAYFILL_FORCE_STRING
-$hDataType = String
-EndSwitch
-Switch UBound($aArray, 0)
+If $hDataType = Default Then $hDataType = 0
+If Not IsArray($avArray) Then Return SetError(1, 0, -1)
+Local $iDim_1 = UBound($avArray, 1)
+Switch UBound($avArray, 0)
 Case 1
-If $iForce = $ARRAYFILL_FORCE_SINGLEITEM Then
-ReDim $aArray[$iDim_1 + 1]
-$aArray[$iDim_1] = $vValue
-Return $iDim_1
-EndIf
 If IsArray($vValue) Then
 If UBound($vValue, 0) <> 1 Then Return SetError(5, 0, -1)
 $hDataType = 0
@@ -42,23 +21,24 @@ Else
 Local $aTmp = StringSplit($vValue, $sDelim_Item, 2 + 1)
 If UBound($aTmp, 1) = 1 Then
 $aTmp[0] = $vValue
+$hDataType = 0
 EndIf
 $vValue = $aTmp
 EndIf
 Local $iAdd = UBound($vValue, 1)
-ReDim $aArray[$iDim_1 + $iAdd]
+ReDim $avArray[$iDim_1 + $iAdd]
 For $i = 0 To $iAdd - 1
 If IsFunc($hDataType) Then
-$aArray[$iDim_1 + $i] = $hDataType($vValue[$i])
+$avArray[$iDim_1 + $i] = $hDataType($vValue[$i])
 Else
-$aArray[$iDim_1 + $i] = $vValue[$i]
+$avArray[$iDim_1 + $i] = $vValue[$i]
 EndIf
 Next
 Return $iDim_1 + $iAdd - 1
 Case 2
-Local $iDim_2 = UBound($aArray, 2)
+Local $iDim_2 = UBound($avArray, 2)
 If $iStart < 0 Or $iStart > $iDim_2 - 1 Then Return SetError(4, 0, -1)
-Local $iValDim_1, $iValDim_2 = 0, $iColCount
+Local $iValDim_1, $iValDim_2
 If IsArray($vValue) Then
 If UBound($vValue, 0) <> 2 Then Return SetError(5, 0, -1)
 $iValDim_1 = UBound($vValue, 1)
@@ -67,33 +47,30 @@ $hDataType = 0
 Else
 Local $aSplit_1 = StringSplit($vValue, $sDelim_Row, 2 + 1)
 $iValDim_1 = UBound($aSplit_1, 1)
-Local $aTmp[$iValDim_1][0], $aSplit_2
+StringReplace($aSplit_1[0], $sDelim_Item, "")
+$iValDim_2 = @extended + 1
+Local $aTmp[$iValDim_1][$iValDim_2], $aSplit_2
 For $i = 0 To $iValDim_1 - 1
 $aSplit_2 = StringSplit($aSplit_1[$i], $sDelim_Item, 2 + 1)
-$iColCount = UBound($aSplit_2)
-If $iColCount > $iValDim_2 Then
-$iValDim_2 = $iColCount
-ReDim $aTmp[$iValDim_1][$iValDim_2]
-EndIf
-For $j = 0 To $iColCount - 1
+For $j = 0 To $iValDim_2 - 1
 $aTmp[$i][$j] = $aSplit_2[$j]
 Next
 Next
 $vValue = $aTmp
 EndIf
-If UBound($vValue, 2) + $iStart > UBound($aArray, 2) Then Return SetError(3, 0, -1)
-ReDim $aArray[$iDim_1 + $iValDim_1][$iDim_2]
+If UBound($vValue, 2) + $iStart > UBound($avArray, 2) Then Return SetError(3, 0, -1)
+ReDim $avArray[$iDim_1 + $iValDim_1][$iDim_2]
 For $iWriteTo_Index = 0 To $iValDim_1 - 1
 For $j = 0 To $iDim_2 - 1
 If $j < $iStart Then
-$aArray[$iWriteTo_Index + $iDim_1][$j] = ""
+$avArray[$iWriteTo_Index + $iDim_1][$j] = ""
 ElseIf $j - $iStart > $iValDim_2 - 1 Then
-$aArray[$iWriteTo_Index + $iDim_1][$j] = ""
+$avArray[$iWriteTo_Index + $iDim_1][$j] = ""
 Else
 If IsFunc($hDataType) Then
-$aArray[$iWriteTo_Index + $iDim_1][$j] = $hDataType($vValue[$iWriteTo_Index][$j - $iStart])
+$avArray[$iWriteTo_Index + $iDim_1][$j] = $hDataType($vValue[$iWriteTo_Index][$j - $iStart])
 Else
-$aArray[$iWriteTo_Index + $iDim_1][$j] = $vValue[$iWriteTo_Index][$j - $iStart]
+$avArray[$iWriteTo_Index + $iDim_1][$j] = $vValue[$iWriteTo_Index][$j - $iStart]
 EndIf
 EndIf
 Next
@@ -101,41 +78,41 @@ Next
 Case Else
 Return SetError(2, 0, -1)
 EndSwitch
-Return UBound($aArray, 1) - 1
+Return UBound($avArray, 1) - 1
 EndFunc
-Func _ArrayColInsert(ByRef $aArray, $iColumn)
-If Not IsArray($aArray) Then Return SetError(1, 0, -1)
-Local $iDim_1 = UBound($aArray, 1)
-Switch UBound($aArray, 0)
+Func _ArrayColInsert(ByRef $avArray, $iColumn)
+If Not IsArray($avArray) Then Return SetError(1, 0, -1)
+Local $iDim_1 = UBound($avArray, 1)
+Switch UBound($avArray, 0)
 Case 1
 Local $aTempArray[$iDim_1][2]
 Switch $iColumn
 Case 0, 1
 For $i = 0 To $iDim_1 - 1
-$aTempArray[$i][(Not $iColumn)] = $aArray[$i]
+$aTempArray[$i][(Not $iColumn)] = $avArray[$i]
 Next
 Case Else
 Return SetError(3, 0, -1)
 EndSwitch
-$aArray = $aTempArray
+$avArray = $aTempArray
 Case 2
-Local $iDim_2 = UBound($aArray, 2)
+Local $iDim_2 = UBound($avArray, 2)
 If $iColumn < 0 Or $iColumn > $iDim_2 Then Return SetError(3, 0, -1)
-ReDim $aArray[$iDim_1][$iDim_2 + 1]
+ReDim $avArray[$iDim_1][$iDim_2 + 1]
 For $i = 0 To $iDim_1 - 1
 For $j = $iDim_2 To $iColumn + 1 Step -1
-$aArray[$i][$j] = $aArray[$i][$j - 1]
+$avArray[$i][$j] = $avArray[$i][$j - 1]
 Next
-$aArray[$i][$iColumn] = ""
+$avArray[$i][$iColumn] = ""
 Next
 Case Else
 Return SetError(2, 0, -1)
 EndSwitch
-Return UBound($aArray, 2)
+Return UBound($avArray, 2)
 EndFunc
-Func _ArrayDelete(ByRef $aArray, $vRange)
-If Not IsArray($aArray) Then Return SetError(1, 0, -1)
-Local $iDim_1 = UBound($aArray, 1) - 1
+Func _ArrayDelete(ByRef $avArray, $vRange)
+If Not IsArray($avArray) Then Return SetError(1, 0, -1)
+Local $iDim_1 = UBound($avArray, 1) - 1
 If IsArray($vRange) Then
 If UBound($vRange, 0) <> 1 Or UBound($vRange, 1) < 2 Then Return SetError(4, 0, -1)
 Else
@@ -163,66 +140,53 @@ $vRange = StringSplit(StringTrimRight($vRange, 1), ";")
 EndIf
 If $vRange[1] < 0 Or $vRange[$vRange[0]] > $iDim_1 Then Return SetError(5, 0, -1)
 Local $iCopyTo_Index = 0
-Switch UBound($aArray, 0)
+Switch UBound($avArray, 0)
 Case 1
 For $i = 1 To $vRange[0]
-$aArray[$vRange[$i]] = ChrW(0xFAB1)
+$avArray[$vRange[$i]] = ChrW(0xFAB1)
 Next
 For $iReadFrom_Index = 0 To $iDim_1
-If $aArray[$iReadFrom_Index] == ChrW(0xFAB1) Then
+If $avArray[$iReadFrom_Index] == ChrW(0xFAB1) Then
 ContinueLoop
 Else
 If $iReadFrom_Index <> $iCopyTo_Index Then
-$aArray[$iCopyTo_Index] = $aArray[$iReadFrom_Index]
+$avArray[$iCopyTo_Index] = $avArray[$iReadFrom_Index]
 EndIf
 $iCopyTo_Index += 1
 EndIf
 Next
-ReDim $aArray[$iDim_1 - $vRange[0] + 1]
+ReDim $avArray[$iDim_1 - $vRange[0] + 1]
 Case 2
-Local $iDim_2 = UBound($aArray, 2) - 1
+Local $iDim_2 = UBound($avArray, 2) - 1
 For $i = 1 To $vRange[0]
-$aArray[$vRange[$i]][0] = ChrW(0xFAB1)
+$avArray[$vRange[$i]][0] = ChrW(0xFAB1)
 Next
 For $iReadFrom_Index = 0 To $iDim_1
-If $aArray[$iReadFrom_Index][0] == ChrW(0xFAB1) Then
+If $avArray[$iReadFrom_Index][0] == ChrW(0xFAB1) Then
 ContinueLoop
 Else
 If $iReadFrom_Index <> $iCopyTo_Index Then
 For $j = 0 To $iDim_2
-$aArray[$iCopyTo_Index][$j] = $aArray[$iReadFrom_Index][$j]
+$avArray[$iCopyTo_Index][$j] = $avArray[$iReadFrom_Index][$j]
 Next
 EndIf
 $iCopyTo_Index += 1
 EndIf
 Next
-ReDim $aArray[$iDim_1 - $vRange[0] + 1][$iDim_2 + 1]
+ReDim $avArray[$iDim_1 - $vRange[0] + 1][$iDim_2 + 1]
 Case Else
 Return SetError(2, 0, False)
 EndSwitch
-Return UBound($aArray, 1)
+Return UBound($avArray, 1)
 EndFunc
-Func _ArrayInsert(ByRef $aArray, $vRange, $vValue = "", $iStart = 0, $sDelim_Item = "|", $sDelim_Row = @CRLF, $iForce = $ARRAYFILL_FORCE_DEFAULT)
+Func _ArrayInsert(ByRef $avArray, $vRange, $vValue = "", $iStart = 0, $sDelim_Item = "|", $sDelim_Row = @CRLF, $hDataType = 0)
 If $vValue = Default Then $vValue = ""
 If $iStart = Default Then $iStart = 0
 If $sDelim_Item = Default Then $sDelim_Item = "|"
 If $sDelim_Row = Default Then $sDelim_Row = @CRLF
-If $iForce = Default Then $iForce = $ARRAYFILL_FORCE_DEFAULT
-If Not IsArray($aArray) Then Return SetError(1, 0, -1)
-Local $iDim_1 = UBound($aArray, 1) - 1
-Local $hDataType = 0
-Switch $iForce
-Case $ARRAYFILL_FORCE_INT
-$hDataType = Int
-Case $ARRAYFILL_FORCE_NUMBER
-$hDataType = Number
-Case $ARRAYFILL_FORCE_PTR
-$hDataType = Ptr
-Case $ARRAYFILL_FORCE_HWND
-$hDataType = Hwnd
-Case $ARRAYFILL_FORCE_STRING
-$hDataType = String
-EndSwitch
+If $hDataType = Default Then $hDataType = 0
+If Not IsArray($avArray) Then Return SetError(1, 0, -1)
+Local $iDim_1 = UBound($avArray, 1) - 1
 Local $aSplit_1, $aSplit_2
 If IsArray($vRange) Then
 If UBound($vRange, 0) <> 1 Or UBound($vRange, 1) < 2 Then Return SetError(4, 0, -1)
@@ -256,25 +220,9 @@ Next
 Local $iCopyTo_Index = $iDim_1 + $vRange[0]
 Local $iInsertPoint_Index = $vRange[0]
 Local $iInsert_Index = $vRange[$iInsertPoint_Index]
-Switch UBound($aArray, 0)
+Switch UBound($avArray, 0)
 Case 1
-If $iForce = $ARRAYFILL_FORCE_SINGLEITEM Then
-ReDim $aArray[$iDim_1 + $vRange[0] + 1]
-For $iReadFromIndex = $iDim_1 To 0 Step -1
-$aArray[$iCopyTo_Index] = $aArray[$iReadFromIndex]
-$iCopyTo_Index -= 1
-$iInsert_Index = $vRange[$iInsertPoint_Index]
-While $iReadFromIndex = $iInsert_Index
-$aArray[$iCopyTo_Index] = $vValue
-$iCopyTo_Index -= 1
-$iInsertPoint_Index -= 1
-If $iInsertPoint_Index < 1 Then ExitLoop 2
-$iInsert_Index = $vRange[$iInsertPoint_Index]
-WEnd
-Next
-Return $iDim_1 + $vRange[0] + 1
-EndIf
-ReDim $aArray[$iDim_1 + $vRange[0] + 1]
+ReDim $avArray[$iDim_1 + $vRange[0] + 1]
 If IsArray($vValue) Then
 If UBound($vValue, 0) <> 1 Then Return SetError(5, 0, -1)
 $hDataType = 0
@@ -287,18 +235,18 @@ EndIf
 $vValue = $aTmp
 EndIf
 For $iReadFromIndex = $iDim_1 To 0 Step -1
-$aArray[$iCopyTo_Index] = $aArray[$iReadFromIndex]
+$avArray[$iCopyTo_Index] = $avArray[$iReadFromIndex]
 $iCopyTo_Index -= 1
 $iInsert_Index = $vRange[$iInsertPoint_Index]
 While $iReadFromIndex = $iInsert_Index
 If $iInsertPoint_Index <= UBound($vValue, 1) Then
 If IsFunc($hDataType) Then
-$aArray[$iCopyTo_Index] = $hDataType($vValue[$iInsertPoint_Index - 1])
+$avArray[$iCopyTo_Index] = $hDataType($vValue[$iInsertPoint_Index - 1])
 Else
-$aArray[$iCopyTo_Index] = $vValue[$iInsertPoint_Index - 1]
+$avArray[$iCopyTo_Index] = $vValue[$iInsertPoint_Index - 1]
 EndIf
 Else
-$aArray[$iCopyTo_Index] = ""
+$avArray[$iCopyTo_Index] = ""
 EndIf
 $iCopyTo_Index -= 1
 $iInsertPoint_Index -= 1
@@ -307,7 +255,7 @@ $iInsert_Index = $vRange[$iInsertPoint_Index]
 WEnd
 Next
 Case 2
-Local $iDim_2 = UBound($aArray, 2)
+Local $iDim_2 = UBound($avArray, 2)
 If $iStart < 0 Or $iStart > $iDim_2 - 1 Then Return SetError(6, 0, -1)
 Local $iValDim_1, $iValDim_2
 If IsArray($vValue) Then
@@ -329,29 +277,29 @@ Next
 Next
 $vValue = $aTmp
 EndIf
-If UBound($vValue, 2) + $iStart > UBound($aArray, 2) Then Return SetError(8, 0, -1)
-ReDim $aArray[$iDim_1 + $vRange[0] + 1][$iDim_2]
+If UBound($vValue, 2) + $iStart > UBound($avArray, 2) Then Return SetError(8, 0, -1)
+ReDim $avArray[$iDim_1 + $vRange[0] + 1][$iDim_2]
 For $iReadFromIndex = $iDim_1 To 0 Step -1
 For $j = 0 To $iDim_2 - 1
-$aArray[$iCopyTo_Index][$j] = $aArray[$iReadFromIndex][$j]
+$avArray[$iCopyTo_Index][$j] = $avArray[$iReadFromIndex][$j]
 Next
 $iCopyTo_Index -= 1
 $iInsert_Index = $vRange[$iInsertPoint_Index]
 While $iReadFromIndex = $iInsert_Index
 For $j = 0 To $iDim_2 - 1
 If $j < $iStart Then
-$aArray[$iCopyTo_Index][$j] = ""
+$avArray[$iCopyTo_Index][$j] = ""
 ElseIf $j - $iStart > $iValDim_2 - 1 Then
-$aArray[$iCopyTo_Index][$j] = ""
+$avArray[$iCopyTo_Index][$j] = ""
 Else
 If $iInsertPoint_Index - 1 < $iValDim_1 Then
 If IsFunc($hDataType) Then
-$aArray[$iCopyTo_Index][$j] = $hDataType($vValue[$iInsertPoint_Index - 1][$j - $iStart])
+$avArray[$iCopyTo_Index][$j] = $hDataType($vValue[$iInsertPoint_Index - 1][$j - $iStart])
 Else
-$aArray[$iCopyTo_Index][$j] = $vValue[$iInsertPoint_Index - 1][$j - $iStart]
+$avArray[$iCopyTo_Index][$j] = $vValue[$iInsertPoint_Index - 1][$j - $iStart]
 EndIf
 Else
-$aArray[$iCopyTo_Index][$j] = ""
+$avArray[$iCopyTo_Index][$j] = ""
 EndIf
 EndIf
 Next
@@ -364,45 +312,45 @@ Next
 Case Else
 Return SetError(2, 0, -1)
 EndSwitch
-Return UBound($aArray, 1)
+Return UBound($avArray, 1)
 EndFunc
-Func _ArrayPop(ByRef $aArray)
-If(Not IsArray($aArray)) Then Return SetError(1, 0, "")
-If UBound($aArray, 0) <> 1 Then Return SetError(2, 0, "")
-Local $iUBound = UBound($aArray) - 1
+Func _ArrayPop(ByRef $avArray)
+If(Not IsArray($avArray)) Then Return SetError(1, 0, "")
+If UBound($avArray, 0) <> 1 Then Return SetError(2, 0, "")
+Local $iUBound = UBound($avArray) - 1
 If $iUBound = -1 Then Return SetError(3, 0, "")
-Local $sLastVal = $aArray[$iUBound]
+Local $sLastVal = $avArray[$iUBound]
 If $iUBound > -1 Then
-ReDim $aArray[$iUBound]
+ReDim $avArray[$iUBound]
 EndIf
 Return $sLastVal
 EndFunc
-Func _ArrayReverse(ByRef $aArray, $iStart = 0, $iEnd = 0)
+Func _ArrayReverse(ByRef $avArray, $iStart = 0, $iEnd = 0)
 If $iStart = Default Then $iStart = 0
 If $iEnd = Default Then $iEnd = 0
-If Not IsArray($aArray) Then Return SetError(1, 0, 0)
-If UBound($aArray, 0) <> 1 Then Return SetError(3, 0, 0)
-If Not UBound($aArray) Then Return SetError(4, 0, 0)
-Local $vTmp, $iUBound = UBound($aArray) - 1
+If Not IsArray($avArray) Then Return SetError(1, 0, 0)
+If UBound($avArray, 0) <> 1 Then Return SetError(3, 0, 0)
+If Not UBound($avArray) Then Return SetError(4, 0, 0)
+Local $vTmp, $iUBound = UBound($avArray) - 1
 If $iEnd < 1 Or $iEnd > $iUBound Then $iEnd = $iUBound
 If $iStart < 0 Then $iStart = 0
 If $iStart > $iEnd Then Return SetError(2, 0, 0)
 For $i = $iStart To Int(($iStart + $iEnd - 1) / 2)
-$vTmp = $aArray[$i]
-$aArray[$i] = $aArray[$iEnd]
-$aArray[$iEnd] = $vTmp
+$vTmp = $avArray[$i]
+$avArray[$i] = $avArray[$iEnd]
+$avArray[$iEnd] = $vTmp
 $iEnd -= 1
 Next
 Return 1
 EndFunc
-Func _ArraySort(ByRef $aArray, $iDescending = 0, $iStart = 0, $iEnd = 0, $iSubItem = 0, $iPivot = 0)
+Func _ArraySort(ByRef $avArray, $iDescending = 0, $iStart = 0, $iEnd = 0, $iSubItem = 0, $iPivot = 0)
 If $iDescending = Default Then $iDescending = 0
 If $iStart = Default Then $iStart = 0
 If $iEnd = Default Then $iEnd = 0
 If $iSubItem = Default Then $iSubItem = 0
 If $iPivot = Default Then $iPivot = 0
-If Not IsArray($aArray) Then Return SetError(1, 0, 0)
-Local $iUBound = UBound($aArray) - 1
+If Not IsArray($avArray) Then Return SetError(1, 0, 0)
+Local $iUBound = UBound($avArray) - 1
 If $iUBound = -1 Then Return SetError(5, 0, 0)
 If $iEnd = Default Then $iEnd = 0
 If $iEnd < 1 Or $iEnd > $iUBound Or $iEnd = Default Then $iEnd = $iUBound
@@ -411,111 +359,111 @@ If $iStart > $iEnd Then Return SetError(2, 0, 0)
 If $iDescending = Default Then $iDescending = 0
 If $iPivot = Default Then $iPivot = 0
 If $iSubItem = Default Then $iSubItem = 0
-Switch UBound($aArray, 0)
+Switch UBound($avArray, 0)
 Case 1
 If $iPivot Then
-__ArrayDualPivotSort($aArray, $iStart, $iEnd)
+__ArrayDualPivotSort($avArray, $iStart, $iEnd)
 Else
-__ArrayQuickSort1D($aArray, $iStart, $iEnd)
+__ArrayQuickSort1D($avArray, $iStart, $iEnd)
 EndIf
-If $iDescending Then _ArrayReverse($aArray, $iStart, $iEnd)
+If $iDescending Then _ArrayReverse($avArray, $iStart, $iEnd)
 Case 2
 If $iPivot Then Return SetError(6, 0, 0)
-Local $iSubMax = UBound($aArray, 2) - 1
+Local $iSubMax = UBound($avArray, 2) - 1
 If $iSubItem > $iSubMax Then Return SetError(3, 0, 0)
 If $iDescending Then
 $iDescending = -1
 Else
 $iDescending = 1
 EndIf
-__ArrayQuickSort2D($aArray, $iDescending, $iStart, $iEnd, $iSubItem, $iSubMax)
+__ArrayQuickSort2D($avArray, $iDescending, $iStart, $iEnd, $iSubItem, $iSubMax)
 Case Else
 Return SetError(4, 0, 0)
 EndSwitch
 Return 1
 EndFunc
-Func __ArrayQuickSort1D(ByRef $aArray, Const ByRef $iStart, Const ByRef $iEnd)
+Func __ArrayQuickSort1D(ByRef $avArray, Const ByRef $iStart, Const ByRef $iEnd)
 If $iEnd <= $iStart Then Return
 Local $vTmp
 If($iEnd - $iStart) < 15 Then
 Local $vCur
 For $i = $iStart + 1 To $iEnd
-$vTmp = $aArray[$i]
+$vTmp = $avArray[$i]
 If IsNumber($vTmp) Then
 For $j = $i - 1 To $iStart Step -1
-$vCur = $aArray[$j]
+$vCur = $avArray[$j]
 If($vTmp >= $vCur And IsNumber($vCur)) Or(Not IsNumber($vCur) And StringCompare($vTmp, $vCur) >= 0) Then ExitLoop
-$aArray[$j + 1] = $vCur
+$avArray[$j + 1] = $vCur
 Next
 Else
 For $j = $i - 1 To $iStart Step -1
-If(StringCompare($vTmp, $aArray[$j]) >= 0) Then ExitLoop
-$aArray[$j + 1] = $aArray[$j]
+If(StringCompare($vTmp, $avArray[$j]) >= 0) Then ExitLoop
+$avArray[$j + 1] = $avArray[$j]
 Next
 EndIf
-$aArray[$j + 1] = $vTmp
+$avArray[$j + 1] = $vTmp
 Next
 Return
 EndIf
-Local $L = $iStart, $R = $iEnd, $vPivot = $aArray[Int(($iStart + $iEnd) / 2)], $bNum = IsNumber($vPivot)
+Local $L = $iStart, $R = $iEnd, $vPivot = $avArray[Int(($iStart + $iEnd) / 2)], $bNum = IsNumber($vPivot)
 Do
 If $bNum Then
-While($aArray[$L] < $vPivot And IsNumber($aArray[$L])) Or(Not IsNumber($aArray[$L]) And StringCompare($aArray[$L], $vPivot) < 0)
+While($avArray[$L] < $vPivot And IsNumber($avArray[$L])) Or(Not IsNumber($avArray[$L]) And StringCompare($avArray[$L], $vPivot) < 0)
 $L += 1
 WEnd
-While($aArray[$R] > $vPivot And IsNumber($aArray[$R])) Or(Not IsNumber($aArray[$R]) And StringCompare($aArray[$R], $vPivot) > 0)
+While($avArray[$R] > $vPivot And IsNumber($avArray[$R])) Or(Not IsNumber($avArray[$R]) And StringCompare($avArray[$R], $vPivot) > 0)
 $R -= 1
 WEnd
 Else
-While(StringCompare($aArray[$L], $vPivot) < 0)
+While(StringCompare($avArray[$L], $vPivot) < 0)
 $L += 1
 WEnd
-While(StringCompare($aArray[$R], $vPivot) > 0)
+While(StringCompare($avArray[$R], $vPivot) > 0)
 $R -= 1
 WEnd
 EndIf
 If $L <= $R Then
-$vTmp = $aArray[$L]
-$aArray[$L] = $aArray[$R]
-$aArray[$R] = $vTmp
+$vTmp = $avArray[$L]
+$avArray[$L] = $avArray[$R]
+$avArray[$R] = $vTmp
 $L += 1
 $R -= 1
 EndIf
 Until $L > $R
-__ArrayQuickSort1D($aArray, $iStart, $R)
-__ArrayQuickSort1D($aArray, $L, $iEnd)
+__ArrayQuickSort1D($avArray, $iStart, $R)
+__ArrayQuickSort1D($avArray, $L, $iEnd)
 EndFunc
-Func __ArrayQuickSort2D(ByRef $aArray, Const ByRef $iStep, Const ByRef $iStart, Const ByRef $iEnd, Const ByRef $iSubItem, Const ByRef $iSubMax)
+Func __ArrayQuickSort2D(ByRef $avArray, Const ByRef $iStep, Const ByRef $iStart, Const ByRef $iEnd, Const ByRef $iSubItem, Const ByRef $iSubMax)
 If $iEnd <= $iStart Then Return
-Local $vTmp, $L = $iStart, $R = $iEnd, $vPivot = $aArray[Int(($iStart + $iEnd) / 2)][$iSubItem], $bNum = IsNumber($vPivot)
+Local $vTmp, $L = $iStart, $R = $iEnd, $vPivot = $avArray[Int(($iStart + $iEnd) / 2)][$iSubItem], $bNum = IsNumber($vPivot)
 Do
 If $bNum Then
-While($iStep *($aArray[$L][$iSubItem] - $vPivot) < 0 And IsNumber($aArray[$L][$iSubItem])) Or(Not IsNumber($aArray[$L][$iSubItem]) And $iStep * StringCompare($aArray[$L][$iSubItem], $vPivot) < 0)
+While($iStep *($avArray[$L][$iSubItem] - $vPivot) < 0 And IsNumber($avArray[$L][$iSubItem])) Or(Not IsNumber($avArray[$L][$iSubItem]) And $iStep * StringCompare($avArray[$L][$iSubItem], $vPivot) < 0)
 $L += 1
 WEnd
-While($iStep *($aArray[$R][$iSubItem] - $vPivot) > 0 And IsNumber($aArray[$R][$iSubItem])) Or(Not IsNumber($aArray[$R][$iSubItem]) And $iStep * StringCompare($aArray[$R][$iSubItem], $vPivot) > 0)
+While($iStep *($avArray[$R][$iSubItem] - $vPivot) > 0 And IsNumber($avArray[$R][$iSubItem])) Or(Not IsNumber($avArray[$R][$iSubItem]) And $iStep * StringCompare($avArray[$R][$iSubItem], $vPivot) > 0)
 $R -= 1
 WEnd
 Else
-While($iStep * StringCompare($aArray[$L][$iSubItem], $vPivot) < 0)
+While($iStep * StringCompare($avArray[$L][$iSubItem], $vPivot) < 0)
 $L += 1
 WEnd
-While($iStep * StringCompare($aArray[$R][$iSubItem], $vPivot) > 0)
+While($iStep * StringCompare($avArray[$R][$iSubItem], $vPivot) > 0)
 $R -= 1
 WEnd
 EndIf
 If $L <= $R Then
 For $i = 0 To $iSubMax
-$vTmp = $aArray[$L][$i]
-$aArray[$L][$i] = $aArray[$R][$i]
-$aArray[$R][$i] = $vTmp
+$vTmp = $avArray[$L][$i]
+$avArray[$L][$i] = $avArray[$R][$i]
+$avArray[$R][$i] = $vTmp
 Next
 $L += 1
 $R -= 1
 EndIf
 Until $L > $R
-__ArrayQuickSort2D($aArray, $iStep, $iStart, $R, $iSubItem, $iSubMax)
-__ArrayQuickSort2D($aArray, $iStep, $L, $iEnd, $iSubItem, $iSubMax)
+__ArrayQuickSort2D($avArray, $iStep, $iStart, $R, $iSubItem, $iSubMax)
+__ArrayQuickSort2D($avArray, $iStep, $L, $iEnd, $iSubItem, $iSubMax)
 EndFunc
 Func __ArrayDualPivotSort(ByRef $aArray, $iPivot_Left, $iPivot_Right, $bLeftMost = True)
 If $iPivot_Left > $iPivot_Right Then Return
@@ -734,101 +682,39 @@ __ArrayDualPivotSort($aArray, $iPivot_Left, $iLess - 1, True)
 __ArrayDualPivotSort($aArray, $iGreater + 1, $iPivot_Right, False)
 EndIf
 EndFunc
-Func _ArrayUnique(Const ByRef $aArray, $iColumn = 0, $iBase = 0, $iCase = 0, $iCount = $ARRAYUNIQUE_COUNT, $iIntType = $ARRAYUNIQUE_AUTO)
+Func _ArrayUnique(Const ByRef $aArray, $iColumn = 0, $iBase = 0, $iCase = 0, $iFlags = 1)
 If $iColumn = Default Then $iColumn = 0
 If $iBase = Default Then $iBase = 0
 If $iCase = Default Then $iCase = 0
-If $iCount = Default Then $iCount = $ARRAYUNIQUE_COUNT
+If $iFlags = Default Then $iFlags = 1
 If UBound($aArray, 1) = 0 Then Return SetError(1, 0, 0)
-Local $iDims = UBound($aArray, 0), $iNumColumns = UBound($aArray, 2)
-If $iDims > 2 Then Return SetError(2, 0, 0)
 If $iBase < 0 Or $iBase > 1 Or(Not IsInt($iBase)) Then Return SetError(3, 0, 0)
 If $iCase < 0 Or $iCase > 1 Or(Not IsInt($iCase)) Then Return SetError(3, 0, 0)
-If $iCount < 0 Or $iCount > 1 Or(Not IsInt($iCount)) Then Return SetError(4, 0, 0)
-If $iIntType < 0 Or $iIntType > 4 Or(Not IsInt($iIntType)) Then Return SetError(5, 0, 0)
-If $iColumn < 0 Or($iNumColumns = 0 And $iColumn > 0) Or($iNumColumns > 0 And $iColumn >= $iNumColumns) Then Return SetError(6, 0, 0)
-If $iIntType = $ARRAYUNIQUE_AUTO Then
-Local $vFirstElem =(($iDims = 1) ?($aArray[$iBase]) :($aArray[$iColumn][$iBase]) )
-If IsInt($vFirstElem) Then
-Switch VarGetType($vFirstElem)
-Case "Int32"
-$iIntType = $ARRAYUNIQUE_FORCE32
-Case "Int64"
-$iIntType = $ARRAYUNIQUE_FORCE64
-EndSwitch
-Else
-$iIntType = $ARRAYUNIQUE_FORCE32
-EndIf
-EndIf
-ObjEvent("AutoIt.Error", "__ArrayUnique_AutoErrFunc")
+If $iFlags < 0 Or $iFlags > 1 Or(Not IsInt($iFlags)) Then Return SetError(4, 0, 0)
+Local $iDims = UBound($aArray, 0), $iNumColumns = UBound($aArray, 2)
+If $iDims > 2 Then Return SetError(2, 0, 0)
+If $iColumn < 0 Or($iNumColumns = 0 And $iColumn > 0) Or($iNumColumns > 0 And $iColumn >= $iNumColumns) Then Return SetError(5, 0, 0)
 Local $oDictionary = ObjCreate("Scripting.Dictionary")
 $oDictionary.CompareMode = Number(Not $iCase)
-Local $vElem, $sType, $vKey, $bCOMError = False
+Local $vElem = 0
 For $i = $iBase To UBound($aArray) - 1
 If $iDims = 1 Then
 $vElem = $aArray[$i]
 Else
 $vElem = $aArray[$i][$iColumn]
 EndIf
-Switch $iIntType
-Case $ARRAYUNIQUE_FORCE32
 $oDictionary.Item($vElem)
-If @error Then
-$bCOMError = True
-ExitLoop
-EndIf
-Case $ARRAYUNIQUE_FORCE64
-$sType = VarGetType($vElem)
-If $sType = "Int32" Then
-$bCOMError = True
-ExitLoop
-EndIf
-$vKey = "#" & $sType & "#" & String($vElem)
-If Not $oDictionary.Item($vKey) Then
-$oDictionary($vKey) = $vElem
-EndIf
-Case $ARRAYUNIQUE_MATCH
-$sType = VarGetType($vElem)
-If StringLeft($sType, 3) = "Int" Then
-$vKey = "#Int#" & String($vElem)
-Else
-$vKey = "#" & $sType & "#" & String($vElem)
-EndIf
-If Not $oDictionary.Item($vKey) Then
-$oDictionary($vKey) = $vElem
-EndIf
-Case $ARRAYUNIQUE_DISTINCT
-$vKey = "#" & VarGetType($vElem) & "#" & String($vElem)
-If Not $oDictionary.Item($vKey) Then
-$oDictionary($vKey) = $vElem
-EndIf
-EndSwitch
 Next
-Local $aValues, $j = 0
-If $bCOMError Then
-Return SetError(7, 0, 0)
-ElseIf $iIntType <> $ARRAYUNIQUE_FORCE32 Then
-Local $aValues[$oDictionary.Count]
-For $vKey In $oDictionary.Keys()
-$aValues[$j] = $oDictionary($vKey)
-If StringLeft($vKey, 5) = "#Ptr#" Then
-$aValues[$j] = Ptr($aValues[$j])
-EndIf
-$j += 1
-Next
+If BitAND($iFlags, 1) = 1 Then
+Local $aTemp = $oDictionary.Keys()
+_ArrayInsert($aTemp, 0, $oDictionary.Count)
+Return $aTemp
 Else
-$aValues = $oDictionary.Keys()
+Return $oDictionary.Keys()
 EndIf
-If $iCount Then
-_ArrayInsert($aValues, 0, $oDictionary.Count)
-EndIf
-Return $aValues
-EndFunc
-Func __ArrayUnique_AutoErrFunc()
 EndFunc
 Global Const $BM_CLICK = 0xF5
 Global Const $COLOR_BLUE = 0x0000FF
-Global Const $TRAY_EVENT_PRIMARYDOUBLE = -13
 Global Const $CRYPT_VERIFYCONTEXT = 0xF0000000
 Global $__g_aCryptInternalData[3]
 Func _Crypt_Startup()
@@ -856,11 +742,11 @@ DllCall(__Crypt_DllHandle(), "bool", "CryptReleaseContext", "handle", __Crypt_Co
 DllClose(__Crypt_DllHandle())
 EndIf
 EndFunc
-Func _Crypt_DeriveKey($vPassword, $iAlgID, $iHashAlgID = 0x00008003)
+Func _Crypt_DeriveKey($vPassword, $iALG_ID, $iHash_ALG_ID = 0x00008003)
 Local $aRet = 0, $hBuff = 0, $hCryptHash = 0, $iError = 0, $iExtended = 0, $vReturn = 0
 _Crypt_Startup()
 Do
-$aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptCreateHash", "handle", __Crypt_Context(), "uint", $iHashAlgID, "ptr", 0, "dword", 0, "handle*", 0)
+$aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptCreateHash", "handle", __Crypt_Context(), "uint", $iHash_ALG_ID, "ptr", 0, "dword", 0, "handle*", 0)
 If @error Or Not $aRet[0] Then
 $iError = @error + 10
 $iExtended = @extended
@@ -877,7 +763,7 @@ $iExtended = @extended
 $vReturn = -1
 ExitLoop
 EndIf
-$aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptDeriveKey", "handle", __Crypt_Context(), "uint", $iAlgID, "handle", $hCryptHash, "dword", 0x00000001, "handle*", 0)
+$aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptDeriveKey", "handle", __Crypt_Context(), "uint", $iALG_ID, "handle", $hCryptHash, "dword", 0x00000001, "handle*", 0)
 If @error Or Not $aRet[0] Then
 $iError = @error + 30
 $iExtended = @extended
@@ -899,20 +785,12 @@ Else
 Return True
 EndIf
 EndFunc
-Func _Crypt_EncryptData($vData, $vCryptKey, $iAlgID, $bFinal = True)
-Switch $iAlgID
-Case 0
-Local $iCalgUsed = __Crypt_GetCalgFromCryptKey($vCryptKey)
-If @error Then Return SetError(@error, -1, @extended)
-If $iCalgUsed = 0x00006801 Then ContinueCase
-Case 0x00006801
-If BinaryLen($vData) = 0 Then Return SetError(0, 0, Binary(''))
-EndSwitch
+Func _Crypt_EncryptData($vData, $vCryptKey, $iALG_ID, $bFinal = True)
 Local $iReqBuffSize = 0, $aRet = 0, $hBuff = 0, $iError = 0, $iExtended = 0, $vReturn = 0
 _Crypt_Startup()
 Do
-If $iAlgID <> 0 Then
-$vCryptKey = _Crypt_DeriveKey($vCryptKey, $iAlgID)
+If $iALG_ID <> 0 Then
+$vCryptKey = _Crypt_DeriveKey($vCryptKey, $iALG_ID)
 If @error Then
 $iError = @error + 100
 $iExtended = @extended
@@ -928,35 +806,27 @@ $vReturn = -1
 ExitLoop
 EndIf
 $iReqBuffSize = $aRet[6]
-$hBuff = DllStructCreate("byte[" & $iReqBuffSize + 1 & "]")
+$hBuff = DllStructCreate("byte[" & $iReqBuffSize & "]")
 DllStructSetData($hBuff, 1, $vData)
-$aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptEncrypt", "handle", $vCryptKey, "handle", 0, "bool", $bFinal, "dword", 0, "struct*", $hBuff, "dword*", BinaryLen($vData), "dword", DllStructGetSize($hBuff) - 1)
+$aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptEncrypt", "handle", $vCryptKey, "handle", 0, "bool", $bFinal, "dword", 0, "struct*", $hBuff, "dword*", BinaryLen($vData), "dword", DllStructGetSize($hBuff))
 If @error Or Not $aRet[0] Then
 $iError = @error + 30
 $iExtended = @extended
 $vReturn = -1
 ExitLoop
 EndIf
-$vReturn = BinaryMid(DllStructGetData($hBuff, 1), 1, $iReqBuffSize)
+$vReturn = DllStructGetData($hBuff, 1)
 Until True
-If $iAlgID <> 0 Then _Crypt_DestroyKey($vCryptKey)
+If $iALG_ID <> 0 Then _Crypt_DestroyKey($vCryptKey)
 _Crypt_Shutdown()
 Return SetError($iError, $iExtended, $vReturn)
 EndFunc
-Func _Crypt_DecryptData($vData, $vCryptKey, $iAlgID, $bFinal = True)
-Switch $iAlgID
-Case 0
-Local $iCalgUsed = __Crypt_GetCalgFromCryptKey($vCryptKey)
-If @error Then Return SetError(@error, -1, @extended)
-If $iCalgUsed = 0x00006801 Then ContinueCase
-Case 0x00006801
-If BinaryLen($vData) = 0 Then Return SetError(0, 0, Binary(''))
-EndSwitch
+Func _Crypt_DecryptData($vData, $vCryptKey, $iALG_ID, $bFinal = True)
 Local $aRet = 0, $hBuff = 0, $hTempStruct = 0, $iError = 0, $iExtended = 0, $iPlainTextSize = 0, $vReturn = 0
 _Crypt_Startup()
 Do
-If $iAlgID <> 0 Then
-$vCryptKey = _Crypt_DeriveKey($vCryptKey, $iAlgID)
+If $iALG_ID <> 0 Then
+$vCryptKey = _Crypt_DeriveKey($vCryptKey, $iALG_ID)
 If @error Then
 $iError = @error + 100
 $iExtended = @extended
@@ -965,7 +835,7 @@ ExitLoop
 EndIf
 EndIf
 $hBuff = DllStructCreate("byte[" & BinaryLen($vData) + 1000 & "]")
-If BinaryLen($vData) > 0 Then DllStructSetData($hBuff, 1, $vData)
+DllStructSetData($hBuff, 1, $vData)
 $aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptDecrypt", "handle", $vCryptKey, "handle", 0, "bool", $bFinal, "dword", 0, "struct*", $hBuff, "dword*", BinaryLen($vData))
 If @error Or Not $aRet[0] Then
 $iError = @error + 20
@@ -974,10 +844,10 @@ $vReturn = -1
 ExitLoop
 EndIf
 $iPlainTextSize = $aRet[6]
-$hTempStruct = DllStructCreate("byte[" & $iPlainTextSize + 1 & "]", DllStructGetPtr($hBuff))
-$vReturn = BinaryMid(DllStructGetData($hTempStruct, 1), 1, $iPlainTextSize)
+$hTempStruct = DllStructCreate("byte[" & $iPlainTextSize & "]", DllStructGetPtr($hBuff))
+$vReturn = DllStructGetData($hTempStruct, 1)
 Until True
-If $iAlgID <> 0 Then _Crypt_DestroyKey($vCryptKey)
+If $iALG_ID <> 0 Then _Crypt_DestroyKey($vCryptKey)
 _Crypt_Shutdown()
 Return SetError($iError, $iExtended, $vReturn)
 EndFunc
@@ -1001,16 +871,6 @@ Return $__g_aCryptInternalData[2]
 EndFunc
 Func __Crypt_ContextSet($hCryptContext)
 $__g_aCryptInternalData[2] = $hCryptContext
-EndFunc
-Func __Crypt_GetCalgFromCryptKey($vCryptKey)
-Local $tAlgId = DllStructCreate("uint;dword")
-DllStructSetData($tAlgId, 2, 4)
-Local $aRet = DllCall(__Crypt_DllHandle(), "bool", "CryptGetKeyParam", "handle", $vCryptKey, "dword", 0x00000007, "ptr", DllStructGetPtr($tAlgId, 1), "dword*", DllStructGetPtr($tAlgId, 2), "dword", 0)
-If @error Or Not $aRet[0] Then
-Return SetError(@error, @extended, 1)
-Else
-Return DllStructGetData($tAlgId, 1)
-EndIf
 EndFunc
 Global Const $tagRECT = "struct;long Left;long Top;long Right;long Bottom;endstruct"
 Global Const $tagNMHDR = "struct;hwnd hWndFrom;uint_ptr IDFrom;INT Code;endstruct"
@@ -1064,8 +924,8 @@ Local $aResult = DllCall("user32.dll", "hwnd", "GetParent", "hwnd", $hWnd)
 If @error Then Return SetError(@error, @extended, 0)
 Return $aResult[0]
 EndFunc
-Func _WinAPI_PostMessage($hWnd, $iMsg, $wParam, $lParam)
-Local $aResult = DllCall("user32.dll", "bool", "PostMessage", "hwnd", $hWnd, "uint", $iMsg, "wparam", $wParam, "lparam", $lParam)
+Func _WinAPI_PostMessage($hWnd, $iMsg, $iwParam, $ilParam)
+Local $aResult = DllCall("user32.dll", "bool", "PostMessage", "hwnd", $hWnd, "uint", $iMsg, "wparam", $iwParam, "lparam", $ilParam)
 If @error Then Return SetError(@error, @extended, False)
 Return $aResult[0]
 EndFunc
@@ -1091,7 +951,7 @@ Local $aRet = DllCall('kernel32.dll', 'bool', 'GetVersionExW', 'struct*', $tOSVI
 If @error Or Not $aRet[0] Then Return SetError(@error, @extended, 0)
 Return BitOR(BitShift(DllStructGetData($tOSVI, 2), -8), DllStructGetData($tOSVI, 3))
 EndFunc
-Func _DateAdd($sType, $iNumber, $sDate)
+Func _DateAdd($sType, $iValToAdd, $sDate)
 Local $asTimePart[4]
 Local $asDatePart[4]
 Local $iJulianDate
@@ -1099,7 +959,7 @@ $sType = StringLeft($sType, 1)
 If StringInStr("D,M,Y,w,h,n,s", $sType) = 0 Or $sType = "" Then
 Return SetError(1, 0, 0)
 EndIf
-If Not StringIsInt($iNumber) Then
+If Not StringIsInt($iValToAdd) Then
 Return SetError(2, 0, 0)
 EndIf
 If Not _DateIsValid($sDate) Then
@@ -1107,12 +967,12 @@ Return SetError(3, 0, 0)
 EndIf
 _DateTimeSplit($sDate, $asDatePart, $asTimePart)
 If $sType = "d" Or $sType = "w" Then
-If $sType = "w" Then $iNumber = $iNumber * 7
-$iJulianDate = _DateToDayValue($asDatePart[1], $asDatePart[2], $asDatePart[3]) + $iNumber
+If $sType = "w" Then $iValToAdd = $iValToAdd * 7
+$iJulianDate = _DateToDayValue($asDatePart[1], $asDatePart[2], $asDatePart[3]) + $iValToAdd
 _DayValueToDate($iJulianDate, $asDatePart[1], $asDatePart[2], $asDatePart[3])
 EndIf
 If $sType = "m" Then
-$asDatePart[2] = $asDatePart[2] + $iNumber
+$asDatePart[2] = $asDatePart[2] + $iValToAdd
 While $asDatePart[2] > 12
 $asDatePart[2] = $asDatePart[2] - 12
 $asDatePart[1] = $asDatePart[1] + 1
@@ -1123,13 +983,13 @@ $asDatePart[1] = $asDatePart[1] - 1
 WEnd
 EndIf
 If $sType = "y" Then
-$asDatePart[1] = $asDatePart[1] + $iNumber
+$asDatePart[1] = $asDatePart[1] + $iValToAdd
 EndIf
 If $sType = "h" Or $sType = "n" Or $sType = "s" Then
 Local $iTimeVal = _TimeToTicks($asTimePart[1], $asTimePart[2], $asTimePart[3]) / 1000
-If $sType = "h" Then $iTimeVal = $iTimeVal + $iNumber * 3600
-If $sType = "n" Then $iTimeVal = $iTimeVal + $iNumber * 60
-If $sType = "s" Then $iTimeVal = $iTimeVal + $iNumber
+If $sType = "h" Then $iTimeVal = $iTimeVal + $iValToAdd * 3600
+If $sType = "n" Then $iTimeVal = $iTimeVal + $iValToAdd * 60
+If $sType = "s" Then $iTimeVal = $iTimeVal + $iValToAdd
 Local $iDay2Add = Int($iTimeVal /(24 * 60 * 60))
 $iTimeVal = $iTimeVal - $iDay2Add * 24 * 60 * 60
 If $iTimeVal < 0 Then
@@ -1250,21 +1110,21 @@ If $asTimePart[2] < 0 Or $asTimePart[2] > 59 Then Return 0
 If $asTimePart[3] < 0 Or $asTimePart[3] > 59 Then Return 0
 Return 1
 EndFunc
-Func _DateTimeSplit($sDate, ByRef $aDatePart, ByRef $iTimePart)
+Func _DateTimeSplit($sDate, ByRef $asDatePart, ByRef $iTimePart)
 Local $sDateTime = StringSplit($sDate, " T")
-If $sDateTime[0] > 0 Then $aDatePart = StringSplit($sDateTime[1], "/-.")
+If $sDateTime[0] > 0 Then $asDatePart = StringSplit($sDateTime[1], "/-.")
 If $sDateTime[0] > 1 Then
 $iTimePart = StringSplit($sDateTime[2], ":")
 If UBound($iTimePart) < 4 Then ReDim $iTimePart[4]
 Else
 Dim $iTimePart[4]
 EndIf
-If UBound($aDatePart) < 4 Then ReDim $aDatePart[4]
+If UBound($asDatePart) < 4 Then ReDim $asDatePart[4]
 For $x = 1 To 3
-If StringIsInt($aDatePart[$x]) Then
-$aDatePart[$x] = Int($aDatePart[$x])
+If StringIsInt($asDatePart[$x]) Then
+$asDatePart[$x] = Int($asDatePart[$x])
 Else
-$aDatePart[$x] = -1
+$asDatePart[$x] = -1
 EndIf
 If StringIsInt($iTimePart[$x]) Then
 $iTimePart[$x] = Int($iTimePart[$x])
@@ -1349,7 +1209,8 @@ Return SetError(1, 0, 0)
 EndIf
 EndFunc
 Func _DaysInMonth($iYear)
-Local $aDays = [12, 31,(_DateIsLeapYear($iYear) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+Local $aDays[13] = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+If _DateIsLeapYear($iYear) Then $aDays[2] = 29
 Return $aDays
 EndFunc
 Func _FileCountLines($sFilePath)
@@ -1392,17 +1253,10 @@ $sDir = StringRegExpReplace($aArray[2], "\h*[\/\\]+\h*", "\/")
 Else
 $sDir = StringRegExpReplace($aArray[2], "\h*[\/\\]+\h*", "\\")
 EndIf
-$aArray[2] = $sDir
 $sFileName = $aArray[3]
 $sExtension = $aArray[4]
 Return $aArray
 EndFunc
-Global Const $GUI_EVENT_CLOSE = -3
-Global Const $GUI_EVENT_PRIMARYDOWN = -7
-Global Const $GUI_EVENT_PRIMARYUP = -8
-Global Const $GUI_EVENT_SECONDARYDOWN = -9
-Global Const $GUI_EVENT_SECONDARYUP = -10
-Global Const $GUI_EVENT_MOUSEMOVE = -11
 Func _GUICtrlListBox_GetCurSel($hWnd)
 If IsHWnd($hWnd) Then
 Return _SendMessage($hWnd, 0x0188)
@@ -1418,9 +1272,8 @@ GUICtrlSendMsg($hWnd, 0x0184, 0, 0)
 EndIf
 EndFunc
 Global Const $TCM_SETCURSEL =(0x1300 + 12)
-Global Const $TCN_FIRST = -550
-Global Const $TCN_SELCHANGE =($TCN_FIRST - 1)
-Global Const $TCN_SELCHANGING =($TCN_FIRST - 2)
+Global Const $TCN_SELCHANGE =(-550 - 1)
+Global Const $TCN_SELCHANGING =(-550 - 2)
 Global Const $__TABCONSTANT_WM_NOTIFY = 0x004E
 Func _GUICtrlTab_ActivateTab($hWnd, $iIndex)
 Local $nIndX
@@ -1477,7 +1330,7 @@ If Not IsNumber($iNum1) Then Return SetError(1, 0, 0)
 If Not IsNumber($iNum2) Then Return SetError(2, 0, 0)
 Return($iNum1 > $iNum2) ? $iNum1 : $iNum2
 EndFunc
-Func _Singleton($sOccurrenceName, $iFlag = 0)
+Func _Singleton($sOccurenceName, $iFlag = 0)
 Local Const $ERROR_ALREADY_EXISTS = 183
 Local Const $SECURITY_DESCRIPTOR_REVISION = 1
 Local $tSecurityAttributes = 0
@@ -1496,7 +1349,7 @@ DllStructSetData($tSecurityAttributes, 3, 0)
 EndIf
 EndIf
 EndIf
-Local $aHandle = DllCall("kernel32.dll", "handle", "CreateMutexW", "struct*", $tSecurityAttributes, "bool", 1, "wstr", $sOccurrenceName)
+Local $aHandle = DllCall("kernel32.dll", "handle", "CreateMutexW", "struct*", $tSecurityAttributes, "bool", 1, "wstr", $sOccurenceName)
 If @error Then Return SetError(@error, @extended, 0)
 Local $aLastError = DllCall("kernel32.dll", "dword", "GetLastError")
 If @error Then Return SetError(@error, @extended, 0)
@@ -1526,19 +1379,19 @@ $aReturn = DllCall('ole32.dll', 'int', 'StringFromGUID2', 'struct*', $tGUID, 'ws
 If @error Or Not $aReturn[0] Then Return SetError(@error + 20, @extended, '')
 Return $aReturn[2]
 EndFunc
-Func _WinAPI_PathSearchAndQualify($sFilePath, $bExists = False)
-Local $aRet = DllCall('shlwapi.dll', 'bool', 'PathSearchAndQualifyW', 'wstr', $sFilePath, 'wstr', '', 'int', 4096)
+Func _WinAPI_PathSearchAndQualify($sPath, $bExists = False)
+Local $aRet = DllCall('shlwapi.dll', 'bool', 'PathSearchAndQualifyW', 'wstr', $sPath, 'wstr', '', 'int', 4096)
 If @error Or Not $aRet[0] Then Return SetError(@error + 10, @extended, '')
 If $bExists And Not FileExists($aRet[2]) Then Return SetError(20, 0, '')
 Return $aRet[2]
 EndFunc
 Func _WinAPI_ShellGetPathFromIDList($pPIDL)
-Local $aRet = DllCall('shell32.dll', 'bool', 'SHGetPathFromIDListW', 'struct*', $pPIDL, 'wstr', '')
+Local $aRet = DllCall('shell32.dll', 'bool', 'SHGetPathFromIDListW', 'ptr', $pPIDL, 'wstr', '')
 If @error Or Not $aRet[0] Then Return SetError(@error, @extended, '')
 Return $aRet[2]
 EndFunc
-Func _WinAPI_ShellILCreateFromPath($sFilePath)
-Local $aRet = DllCall('shell32.dll', 'long', 'SHILCreateFromPath', 'wstr', $sFilePath, 'ptr*', 0, 'dword*', 0)
+Func _WinAPI_ShellILCreateFromPath($sPath)
+Local $aRet = DllCall('shell32.dll', 'long', 'SHILCreateFromPath', 'wstr', $sPath, 'ptr*', 0, 'dword*', 0)
 If @error Then Return SetError(@error, @extended, 0)
 If $aRet[0] Then Return SetError(10, $aRet[0], 0)
 Return $aRet[2]
@@ -1581,18 +1434,18 @@ Local $aRet = DllCall('shlwapi.dll', 'ptr', 'StrFormatByteSizeW', 'int64', $iSiz
 If @error Or Not $aRet[0] Then Return SetError(@error + 10, @extended, '')
 Return $aRet[2]
 EndFunc
-Func _WinAPI_DefineDosDevice($sDevice, $iFlags, $sFilePath = '')
+Func _WinAPI_DefineDosDevice($sDevice, $iFlags, $sPath = '')
 Local $sTypeOfPath = 'wstr'
-If Not StringStripWS($sFilePath, 1 + 2) Then
+If Not StringStripWS($sPath, 1 + 2) Then
 $sTypeOfPath = 'ptr'
-$sFilePath = 0
+$sPath = 0
 EndIf
-Local $aRet = DllCall('kernel32.dll', 'bool', 'DefineDosDeviceW', 'dword', $iFlags, 'wstr', $sDevice, $sTypeOfPath, $sFilePath)
+Local $aRet = DllCall('kernel32.dll', 'bool', 'DefineDosDeviceW', 'dword', $iFlags, 'wstr', $sDevice, $sTypeOfPath, $sPath)
 If @error Then Return SetError(@error, @extended, False)
 Return $aRet[0]
 EndFunc
-Func _WinAPI_GetFileAttributes($sFilePath)
-Local $aRet = DllCall('kernel32.dll', 'dword', 'GetFileAttributesW', 'wstr', $sFilePath)
+Func _WinAPI_GetFileAttributes($sFile)
+Local $aRet = DllCall('kernel32.dll', 'dword', 'GetFileAttributesW', 'wstr', $sFile)
 If @error Or($aRet[0] = 4294967295) Then Return SetError(@error, @extended, 0)
 Return $aRet[0]
 EndFunc
@@ -1795,8 +1648,8 @@ If @error Then Return SetError(@error, @extended, False)
 If $aResult[0] Then Return SetError(10, $aResult[0], False)
 Return True
 EndFunc
-Func _GDIPlus_PenCreate($iARGB = 0xFF000000, $nWidth = 1, $iUnit = 2)
-Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipCreatePen1", "dword", $iARGB, "float", $nWidth, "int", $iUnit, "handle*", 0)
+Func _GDIPlus_PenCreate($iARGB = 0xFF000000, $fWidth = 1, $iUnit = 2)
+Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipCreatePen1", "dword", $iARGB, "float", $fWidth, "int", $iUnit, "handle*", 0)
 If @error Then Return SetError(@error, @extended, 0)
 If $aResult[0] Then Return SetError(10, $aResult[0], 0)
 Return $aResult[4]
@@ -1808,12 +1661,12 @@ If $aResult[0] Then Return SetError(10, $aResult[0], False)
 Return True
 EndFunc
 Func _GDIPlus_RectFCreate($nX = 0, $nY = 0, $nWidth = 0, $nHeight = 0)
-Local $tRECTF = DllStructCreate($tagGDIPRECTF)
-DllStructSetData($tRECTF, "X", $nX)
-DllStructSetData($tRECTF, "Y", $nY)
-DllStructSetData($tRECTF, "Width", $nWidth)
-DllStructSetData($tRECTF, "Height", $nHeight)
-Return $tRECTF
+Local $tRectF = DllStructCreate($tagGDIPRECTF)
+DllStructSetData($tRectF, "X", $nX)
+DllStructSetData($tRectF, "Y", $nY)
+DllStructSetData($tRectF, "Width", $nWidth)
+DllStructSetData($tRectF, "Height", $nHeight)
+Return $tRectF
 EndFunc
 Func _GDIPlus_Shutdown()
 If $__g_hGDIPDll = 0 Then Return SetError(-1, -1, False)
@@ -1828,7 +1681,13 @@ EndFunc
 Func _GDIPlus_Startup($sGDIPDLL = Default, $bRetDllHandle = False)
 $__g_iGDIPRef += 1
 If $__g_iGDIPRef > 1 Then Return True
-If $sGDIPDLL = Default Then $sGDIPDLL = "gdiplus.dll"
+If $sGDIPDLL = Default Then
+If @OSBuild > 4999 And @OSBuild < 7600 Then
+$sGDIPDLL = @WindowsDir & "\winsxs\x86_microsoft.windows.gdiplus_6595b64144ccf1df_1.1.6000.16386_none_8df21b8362744ace\gdiplus.dll"
+Else
+$sGDIPDLL = "gdiplus.dll"
+EndIf
+EndIf
 $__g_hGDIPDll = DllOpen($sGDIPDLL)
 If $__g_hGDIPDll = -1 Then
 $__g_iGDIPRef = 0
@@ -1845,7 +1704,7 @@ If @error Then Return SetError(@error, @extended, False)
 If $aResult[0] Then Return SetError(10, $aResult[0], False)
 $__g_iGDIPToken = DllStructGetData($tToken, "Data")
 If $bRetDllHandle Then Return $__g_hGDIPDll
-Return SetExtended($sVer[1], True)
+Return True
 EndFunc
 Func _GDIPlus_StringFormatCreate($iFormat = 0, $iLangID = 0)
 Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipCreateStringFormat", "int", $iFormat, "word", $iLangID, "handle*", 0)
@@ -3602,7 +3461,7 @@ GUICtrlCreateLabel($sText, 10, 10, $width - 20, $height - 60)
 GUISetState(@SW_SHOW)
 While 1
 Switch GUIGetMsg()
-Case $id_OK, $GUI_EVENT_CLOSE
+Case $id_OK, -3
 $sCombo = GUICtrlRead($id_Combo)
 ExitLoop
 EndSwitch
@@ -3817,7 +3676,7 @@ TraySetToolTip("USB-Backup")
 While 1
 Local $msg = TrayGetMsg()
 Switch $msg
-Case 0, $GUI_EVENT_MOUSEMOVE, $GUI_EVENT_PRIMARYDOWN, $GUI_EVENT_PRIMARYUP, $GUI_EVENT_SECONDARYDOWN, $GUI_EVENT_SECONDARYUP
+Case 0, -11, -7, -8, -9, -10
 Case $iRegisterStick
 DisableTrayMenu()
 RegisterStick()
@@ -3857,7 +3716,7 @@ EndIf
 TrayTip("USB-Backup" & " " & "0.5", $sText, $iTrayTipTime, 1)
 Case $iExit
 Exit
-Case $TRAY_EVENT_PRIMARYDOUBLE
+Case -13
 Case Else
 For $i = 1 To $aBackupTray[0]
 Local $id = $aCurrentSticksOkay[$i]
@@ -4159,7 +4018,7 @@ RegisterStickUpdateLists($lstCurrent, $lstRegistered, $aCurrentRegistered)
 GUISetState(@SW_SHOW, $hGUI)
 While 1
 Switch GUIGetMsg()
-Case $GUI_EVENT_CLOSE, $btnCancel
+Case -3, $btnCancel
 ExitLoop
 Case $btnOkay
 ReDim $aUSBSticks[$aCurrentRegistered[0][0] + 1]
@@ -4240,8 +4099,8 @@ GUISetState(@SW_SHOW, $hGUI)
 While 1
 Local $msg = GUIGetMsg()
 Switch $msg
-Case 0, $GUI_EVENT_MOUSEMOVE
-Case $GUI_EVENT_CLOSE, $btnCancel
+Case 0, -11
+Case -3, $btnCancel
 ExitLoop
 Case $btnOkay
 $aFilePaths = $aCurrentPaths
@@ -4487,7 +4346,7 @@ Switch $msg
 Case $id_OK, $id_ENTER
 $sInput = GUICtrlRead($id_INPUT)
 ExitLoop
-Case $GUI_EVENT_CLOSE
+Case -3
 $sInput = ""
 ExitLoop
 EndSwitch
@@ -4553,7 +4412,7 @@ Case $id_OK
 ExitLoop
 Case 4
 ExitLoop
-Case $GUI_EVENT_CLOSE
+Case -3
 ExitLoop
 EndSwitch
 WEnd
@@ -5251,7 +5110,7 @@ Dim $aGuiIDs[1]
 While 1
 Local $msg = GUIGetMsg()
 Switch $msg
-Case 0, $GUI_EVENT_MOUSEMOVE, $GUI_EVENT_PRIMARYDOWN, $GUI_EVENT_PRIMARYUP, $GUI_EVENT_SECONDARYDOWN, $GUI_EVENT_SECONDARYUP
+Case 0, -11, -7, -8, -9, -10
 Case $btnStart
 GUIDelete($hGUI)
 Local $i = 1
@@ -5292,7 +5151,7 @@ _ArrayAdd($aGuiIDs, $c)
 $c = GUICtrlCreateLabel($aBackupTodo[0][2], $x1 + 144, $y1 + $h, 100, 17)
 _ArrayAdd($aGuiIDs, $c)
 $aGuiIDs[0] = UBound($aGuiIDs) - 1
-Case $GUI_EVENT_CLOSE, $btnCancel
+Case -3, $btnCancel
 ExitLoop
 Case Else
 Local $tvid = GUICtrlRead($tv)
@@ -5702,7 +5561,7 @@ TraySetToolTip(Msg($mLabels[60], "USB-Backup", GetBackupTime($iCurrentRemainingT
 EndIf
 Local $msg = GUIGetMsg()
 Switch $msg
-Case 0, $GUI_EVENT_MOUSEMOVE
+Case 0, -11
 Case $Tab
 $iActiveTab = GUICtrlRead($Tab) + 1
 CreateNewBackup_SetStatus($aReal[3], $aLast[$iActiveTab][3])
@@ -5712,7 +5571,7 @@ If MsgBox(4, "USB-Backup", Msg($mMessages[8])) = 6 Then
 StopSevenZip($aBackupTodo, $aSevenZip, $aDrivesWithVSS)
 ExitLoop
 EndIf
-Case $btnToTray, $GUI_EVENT_CLOSE
+Case $btnToTray, -3
 $iRunningBackup = $hGUI
 EnableTrayMenu()
 GUISetState(@SW_HIDE, $hGUI)
