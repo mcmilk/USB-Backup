@@ -3,7 +3,7 @@ USB-Backup
 ==========
 
 
-USB-Backup is a free backup solution for creating encrypted backups to
+[USB-Backup] is a free backup solution for creating encrypted backups to
 external USB media.
 
 For the compression and the backup format itself the proven and very stable
@@ -17,7 +17,6 @@ software 7-Zip is used.
 - the use of the program is user-friendly and has been developed in
   cooperation with users
 - Network drives and UNC paths can also be backed up
-
 - Installation: no setup, just one AutoIT script (put together into one
   executable)
 - Security:
@@ -42,9 +41,9 @@ software 7-Zip is used.
 
 ## Screenshots
 
-![](http://mcmilk.de/projects/USB-Backup/t_stick_no.png "lala1")
-![](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png todo)
-![](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png todo)
+![no stick](http://mcmilk.de/projects/USB-Backup/t_stick_no.png "lala1")
+![with stick](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png "todo1")
+![reg. stick](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png "todo2")
 
 
 ## Requirements
@@ -62,16 +61,28 @@ software 7-Zip is used.
 
 - the program does not require installation and is run under default user
   privileges
-- USB-Backup should be put into the Startup folder, so that it starts with
+- [USB-Backup] should be put into the Startup folder, so that it starts with
   windows - it is seen then in the system tray
 - the per user configuration can be found in this folder: %APPDATA%\USB-Backup
 
 
 ## Download
 
-https://mcmilk.de/projects/USB-Backup/dl/latest/
+- https://mcmilk.de/projects/USB-Backup/dl/latest/
 
+    7-Zip ZStd Homepage
+    7-Zip Homepage
+    AutoIt Homepage
+    other Backup Software
+    Google Search: Windows USB Backup 
 
 ## See Also
 
-- https://www.google.com/#q=Windows+USB+Backup+GPL
+- [7-Zip] Homepage
+- [7-Zip Zstd] Homepage
+- [USB-Backup] Homepage
+
+
+[7-Zip]: http://www.7-zip.org/
+[7-Zip Zstd]: https://github.com/mcmilk/7-Zip-Zstd
+[USB-Backup]: https://github.com/mcmilk/USB-Backup
