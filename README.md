@@ -10,7 +10,7 @@ For the compression and the backup format itself the proven and very stable
 software 7-Zip is used.
 
 
-== Features ==
+## Features
 
 - local disks, such as the system disk C: can be backed up by using shadow
   copies (warning, this requires administrator privileges)
@@ -40,14 +40,14 @@ software 7-Zip is used.
   - you can help me with that :)
 
 
-== Screenshots ==
+## Screenshots
 
 ![](http://mcmilk.de/projects/USB-Backup/t_stick_no.png "lala1")
 ![](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png todo)
 ![](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png todo)
 
 
-== Requirements ==
+## Requirements
 
 - Hardware
   - Intel Pentium III, 500MHz, 512MB RAM, 2MB Harddisk
@@ -58,7 +58,7 @@ software 7-Zip is used.
   - for restoring the backups, 7-Zip Zstd is needed
 
 
-== Installation ==
+## Installation
 
 - the program does not require installation and is run under default user
   privileges
@@ -67,11 +67,11 @@ software 7-Zip is used.
 - the per user configuration can be found in this folder: %APPDATA%\USB-Backup
 
 
-== Download ==
+## Download
 
 https://mcmilk.de/projects/USB-Backup/dl/latest/
 
 
-== See Also ==
+## See Also
 
 - https://www.google.com/#q=Windows+USB+Backup+GPL
