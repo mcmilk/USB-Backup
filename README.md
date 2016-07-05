@@ -7,7 +7,7 @@ USB-Backup
 external USB media.
 
 For the compression and the backup format itself the proven and very stable
-software 7-Zip is used.
+software [7-Zip] is used.
 
 
 ## Features
@@ -41,9 +41,9 @@ software 7-Zip is used.
 
 ## Screenshots
 
-- no stick: ![no stick](http://mcmilk.de/projects/USB-Backup/t_stick_no.png)
-- with stick: ![with stick](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png)
-- registred stick: ![reg. stick](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png)
+- ![no stick](http://mcmilk.de/projects/USB-Backup/t_stick_no.png) -> no usb media plugged in
+- ![with stick](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png) -> some unknown media
+- ![reg. stick](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png) -> with plugged in registered stick
 
 
 ## Requirements
@@ -65,14 +65,20 @@ software 7-Zip is used.
   windows - it is seen then in the system tray
 - the per user configuration can be found in this folder: %APPDATA%\USB-Backup
 
+
 ## Download
 
 - [32bit Version](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup.exe)
 - [64bit Version](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup_x64.exe)
+- xxx: table hier rein...
+
 
 ## See Also
 
+- [AutoIT Homepage](https://www.autoitscript.com)
 - [7-Zip Homepage](http://www.7-zip.org/)
 - [7-Zip Zstd Homepage](https://github.com/mcmilk/7-Zip-Zstd)
 - [USB-Backup Homepage](https://mcmilk.de/projects/USB-Backup)
-- [AutoIT Homepage](https://www.autoitscript.com)
+
+[7-Zip]: http://www.7-zip.org/
+[USB-Backup]: https://mcmilk.de/projects/USB-Backup
