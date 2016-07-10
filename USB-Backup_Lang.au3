@@ -9,7 +9,7 @@
 #include "Lang\USB-Backup_LangFiles.au3"
 
 #cs
-	Copyright © 2015 Tino Reichardt
+	Copyright Â© 2015 Tino Reichardt
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License Version 2, as
@@ -52,7 +52,7 @@ Local $aAllLanguages[$iLanguageCount][4] = [ _
 		["0411", "ja-JP", "Japanese - Japan"], _
 		["0412", "ko-KR", "Korean - Korea"], _
 		["0413", "nl-NL", "Dutch - Netherlands"], _
-		["0414", "nb-NO", "Norwegian (Bokmål) - Norway"], _
+		["0414", "nb-NO", "Norwegian (BokmÃ¥l) - Norway"], _
 		["0415", "pl-PL", "Polish - Poland"], _
 		["0416", "pt-BR", "Portuguese - Brazil"], _
 		["0417", "rm-CH", "Romansh - Switzerland"], _
@@ -271,7 +271,7 @@ Func GetCurrentLanguageIniFile($OSLang = @OSLang)
 	Local $sLangFile
 	Local $iLangID = 0
 
-	; was haben wir denn im moment für sprachen definiert...
+	; was haben wir denn im moment fÃ¼r sprachen definiert...
 	For $i = 0 To $iLanguageCount - 1
 		If IsFunc($aAllLanguages[$i][3]) Then $sCombo &= "|" & $aAllLanguages[$i][2]
 	Next
@@ -280,7 +280,7 @@ Func GetCurrentLanguageIniFile($OSLang = @OSLang)
 	; ConsoleWrite("$sCombo=" & $sCombo & @CRLF)
 
 	For $i = 0 To $iLanguageCount - 1
-		; wenn id der Sprache nicht passt, nächste probieren...
+		; wenn id der Sprache nicht passt, nÃ¤chste probieren...
 		If $aAllLanguages[$i][0] <> $OSLang Then ContinueLoop
 
 		; zum Beispiel: %APPDATA%\de-DE.ini
@@ -317,7 +317,7 @@ Func GetCurrentLanguageIniFile($OSLang = @OSLang)
 		Exit
 	EndIf
 
-	; wenn wir hier landen, haben wir eine bisher undefinierte Sprache und noch keine "ähnliche" Ini Datei
+	; wenn wir hier landen, haben wir eine bisher undefinierte Sprache und noch keine "Ã¤hnliche" Ini Datei
 	#cs
 		current language is unknown to USB-Backup
 		- ask user, which language he want to use for now...
@@ -360,7 +360,7 @@ Func GetCurrentLanguageIniFile($OSLang = @OSLang)
 		EndIf
 	Next
 
-	; Wenn der Nutzer ESC drückt, wählt er quasi keine Sprache aus!
+	; Wenn der Nutzer ESC drÃ¼ckt, wÃ¤hlt er quasi keine Sprache aus!
 	Exit
 EndFunc   ;==>GetCurrentLanguageIniFile
 
@@ -425,7 +425,7 @@ EndFunc   ;==>InitLanguage
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: Msg
-; Description ...: Gibt gewählten Text für die aktuelle Sprache zurück
+; Description ...: Gibt gewÃ¤hlten Text fÃ¼r die aktuelle Sprache zurÃ¼ck
 ; Syntax ........: Msg()
 ; Author ........: Tino Reichardt
 ; Modified ......: 12.04.2015

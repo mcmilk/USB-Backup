@@ -6,7 +6,7 @@
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: DoBackup_PrepareExefiles
-; Description ...: Stellt die passende vscsc.exe usw. zur Verfügung und lädt auch die benutzten Dll Files
+; Description ...: Stellt die passende vscsc.exe usw. zur VerfÃ¼gung und lÃ¤dt auch die benutzten Dll Files
 ; Syntax ........: DoBackup_PrepareExefiles($sTempPath)
 ; Author ........: Tino Reichardt
 ; Modified ......: 17.04.2014
@@ -14,8 +14,8 @@
 Func DoBackup_PrepareExefiles($sTempPath)
 	If Not FileExists($sTempPath & "vscsc.exe") Then _vscscx64exe(True, $sTempPath)
 	If Not FileExists($sTempPath & "sync.exe") Then _syncexe(True, $sTempPath)
-	If Not FileExists($sTempPath & "7z.dll") Then _7z_x64dll(True, $sTempPath)
-	If Not FileExists($sTempPath & "7zg-mini.exe") Then _7zgminiexe2(True, $sTempPath)
+	If Not FileExists($sTempPath & "7z.dll") Then _7zx64dll(True, $sTempPath)
+	If Not FileExists($sTempPath & "7zg-mini.exe") Then _7zgx64exe(True, $sTempPath)
 EndFunc   ;==>DoBackup_PrepareExefiles
 
 Func _WinAPI_Base64Decode($sB64String)

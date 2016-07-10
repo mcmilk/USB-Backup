@@ -1,13 +1,19 @@
 
 #include "BinaryCall.au3"
+
 #include "USB-Backup_Tools_bin_sync.au3"
+
 #include "USB-Backup_Tools_bin_7zip_x32.au3"
+#include "USB-Backup_Tools_bin_7zip_x64.au3"
+
+#include "USB-Backup_Tools_bin_vscsc_w2003.au3"
+#include "USB-Backup_Tools_bin_vscsc_xp.au3"
 #include "USB-Backup_Tools_bin_vscsc_x32.au3"
 #include "USB-Backup_Tools_bin_vscsc_x64.au3"
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: DoBackup_PrepareExefiles
-; Description ...: Stellt die passende vscsc.exe usw. zur Verfügung und lädt auch die benutzten Dll Files
+; Description ...: Stellt die passende vscsc.exe usw. zur VerfÃ¼gung und lÃ¤dt auch die benutzten Dll Files
 ; Syntax ........: DoBackup_PrepareExefiles($sTempPath)
 ; Author ........: Tino Reichardt
 ; Modified ......: 17.04.2014
@@ -16,21 +22,27 @@ Func DoBackup_PrepareExefiles($sTempPath)
 
 	Switch @OSVersion
 		Case "WIN_XP" ; Windows XP hat eigene Version
-			If Not FileExists($sTempPath & "vscsc.exe") Then _vscscwinxpexe(True, $sTempPath)
+			If Not FileExists($sTempPath & "vscsc.exe") Then _vscscxpexe(True, $sTempPath)
 		Case "WIN_2003" ; Windows Server 2003 auch
 			If Not FileExists($sTempPath & "vscsc.exe") Then _vscscw2003exe(True, $sTempPath)
 		Case Else
 			; alle anderen haben einheitlich neuen standard
 			If @OSArch = "X86" Then
 				If Not FileExists($sTempPath & "vscsc.exe") Then _vscscx32exe(True, $sTempPath)
-			ElseIf @OSArch = "X64" Then
+			Else
 				If Not FileExists($sTempPath & "vscsc.exe") Then _vscscx64exe(True, $sTempPath)
 			EndIf
 	EndSwitch
 
+	If @OSArch = "X86" Then
+		If Not FileExists($sTempPath & "7z.dll") Then _7zx32dll(True, $sTempPath)
+		If Not FileExists($sTempPath & "7zg-mini.exe") Then _7zgx32exe(True, $sTempPath)
+	Else
+		If Not FileExists($sTempPath & "7z.dll") Then _7zx64dll(True, $sTempPath)
+		If Not FileExists($sTempPath & "7zg-mini.exe") Then _7zgx64exe(True, $sTempPath)
+	EndIf
+
 	If Not FileExists($sTempPath & "sync.exe") Then _syncexe(True, $sTempPath)
-	If Not FileExists($sTempPath & "7z.dll") Then _7z_x32dll(True, $sTempPath)
-	If Not FileExists($sTempPath & "7zg-mini.exe") Then _7zgminiexe(True, $sTempPath)
 EndFunc   ;==>DoBackup_PrepareExefiles
 
 Func _WinAPI_Base64Decode($sB64String)

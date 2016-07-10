@@ -44,6 +44,7 @@ software [7-Zip] is used.
 - ![no stick](http://mcmilk.de/projects/USB-Backup/t_stick_no.png) -> no usb media plugged in
 - ![with stick](http://mcmilk.de/projects/USB-Backup/t_stick_yes.png) -> some unknown media
 - ![reg. stick](http://mcmilk.de/projects/USB-Backup/t_stick_reg.png) -> with plugged in registered stick
+- xxx: table hier rein...
 
 
 ## Requirements

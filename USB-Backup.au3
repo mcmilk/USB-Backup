@@ -74,7 +74,7 @@ Opt("WinDetectHiddenText", 1)
 #include "PrintFromArray.au3"
 
 ; x32/x64 compiling, no better way :/
-#include "USB-Backup_Tools.au3"
+#include "USB-Backup_Tools_xany.au3"
 
 ; Titel, Name und so weiter definieren...
 Global Const $sAppName = "USB-Backup"
