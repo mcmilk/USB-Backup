@@ -1,8 +1,7 @@
 0.5.0.4
 =======
-- update of 7z.dll to Zstd v0.7.2
-- removed unneeded x32 binaries from x64 exe
-- the 64bit binary uses 7zip 64bit now, zstd is a lot faster then
+- only one binary with support for 32bit and 64bit (VSS, 7-Zip)
+- update of 7z.dll to zstd v0.7.2 (0.8?)
 
 0.5.0.3
 =======

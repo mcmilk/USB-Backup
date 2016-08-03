@@ -2,7 +2,7 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=USB-Backup.ico
 #AutoIt3Wrapper_Compression=4
-#AutoIt3Wrapper_UseX64=y
+#AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Homepage: https://www.mcmilk.de/projects/USB-Backup/
 #AutoIt3Wrapper_Res_Description=Encrypted Backup on external Storage
 #AutoIt3Wrapper_Res_Fileversion=0.5.0.4
@@ -16,8 +16,12 @@
 #AutoIt3Wrapper_Res_Icon_Add=icos\04.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\05.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\06.ico
+#AutoIt3Wrapper_Run_After=echo %fileversion% > prog.txt
+#AutoIt3Wrapper_Run_After=mpress -s -r -q USB-Backup.exe
+#AutoIt3Wrapper_Run_After=signtool sign /v /tr http://time.certum.pl/ /f USB-Backup.p12 /p pass USB-Backup.exe
 #AutoIt3Wrapper_Run_Tidy=y
 #AutoIt3Wrapper_Run_Au3Stripper=y
+#Au3Stripper_Parameters=/pe /sf /sv /rm /mi 6
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs
@@ -34,7 +38,7 @@
 #ce
 
 ; ctime: /TR 2014-04-16
-; mtime: /TR 2016-07-05
+; mtime: /TR 2016-08-03
 
 Opt("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2 + 4)
@@ -71,10 +75,13 @@ Opt("WinDetectHiddenText", 1)
 #include "FFLabels.au3"
 #include "Sha3.au3"
 #include "DrawPie.au3"
-#include "PrintFromArray.au3"
+; #include "PrintFromArray.au3"
 
-; x32/x64 compiling, no better way :/
+; #include "USB-Backup_Tools.au3"
 #include "USB-Backup_Tools_xany.au3"
+
+; die 64bit version ist an sich kleiner...
+; #include "USB-Backup_Tools_x64.au3"
 
 ; Titel, Name und so weiter definieren...
 Global Const $sAppName = "USB-Backup"
@@ -134,8 +141,8 @@ Global $sHelpTopic = "usage.html"
 Global $hHelpHandle
 
 ; diese globals sind auch als Option in der INI anpassbar
-Global $s7ZipCreateCmd = '7zg-mini a "%A" %o -m0=ZStd -mx2 -ms=off -mhe -slp -ssc -ssw -scsWIN -p"%P" "%p"'
-Global $s7ZipUpdateCmd = '7zg-mini u "%A" %o -m0=ZStd -mx2 -ms=off -mhe -slp -ssc -ssw -scsWIN -p"%P" -u- -up0q3r2x2y2z0w2!"%U" "%p"'
+Global $s7ZipCreateCmd = '7zg-mini a "%A" %o -m0=zstd -mx2 -ms=off -mhe -slp -ssc -ssw -scsWIN -p"%P" "%p"'
+Global $s7ZipUpdateCmd = '7zg-mini u "%A" %o -m0=zstd -mx2 -ms=off -mhe -slp -ssc -ssw -scsWIN -p"%P" -u- -up0q3r2x2y2z0w2!"%U" "%p"'
 Global $sDebug7ZipCmd = "0"
 
 ; Priority for the 7-Zip Commands: IDLE_PRIORITY_CLASS / NORMAL_PRIORITY_CLASS
@@ -1714,10 +1721,12 @@ Func ReadIndexFile($sIndexFile, $sPassword)
 	; am Anfang vom Index steht IMMER [USB-Backup]
 	; ConsoleWrite("ReadIndexFile() StringLen($sData)= " & StringLen($cData) & @CRLF)
 	; ConsoleWrite("data = [[[" & @CRLF & $sData & @CRLF & "]]]" & @CRLF)
-	If StringCompare(StringLeft($sData, 12), "[" & $sAppName & "]") <> 0 Then
-		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[7]))
-		Return ""
-	EndIf
+
+	; das hier passt nicht immer, weil ini dateien eben nicht ganz so statisch sind, wie ich gern hätte... /TR
+	;	If StringCompare(StringLeft($sData, 12), "[" & $sAppName & "]") <> 0 Then
+	;		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[7]))
+	;		Return ""
+	;	EndIf
 
 	; wenn wir bis hier hin durch sind, scheint alles okay zu sein ;)
 	Return $sData ; success
@@ -4259,17 +4268,12 @@ Func DownloadUpdates()
 	; 2) Programm aktualisieren...
 	If BitAND($iHasNewUpdate, 1) Then
 
-		; wir laden die 32bit oder 64bit exe, je nachdem was gerade ausgeführt wird...
-		If @AutoItX64 Then
-			; $sFilePath -> temp. pfad für neue exe datei...
-			$sFilePath = $sTempPath & $sAppName & "_x64.exe"
-			FileDelete($sFilePath)
-			$iStatus = DownloadFile($sUpdateURL & $sAppName & "_x64.exe", $sFilePath, Msg($mLabels[65]))
-		Else
-			$sFilePath = $sTempPath & $sAppName & ".exe"
-			FileDelete($sFilePath)
-			$iStatus = DownloadFile($sUpdateURL & $sAppName & ".exe", $sFilePath, Msg($mLabels[65]))
-		EndIf
+		; update herunter laden
+		; - früher zwischen 64bit und 32bit unterschieden (_x64 suffix bei 64bit)
+		; - seit version 0.5.0.4 gibts nur noch eine exe file!
+		$sFilePath = $sTempPath & $sAppName & ".exe"
+		FileDelete($sFilePath)
+		$iStatus = DownloadFile($sUpdateURL & $sAppName & ".exe", $sFilePath, Msg($mLabels[65]))
 
 		If $iStatus = 0 Then
 			; umbenennen der ausgeführten exe (löschen geht ja nicht)
@@ -4285,7 +4289,7 @@ Func DownloadUpdates()
 			; wir gehen da mal sicher:
 			; 1) erstellen einer batch
 			; 2) diese ausführen, und eigenen prozess beenden
-			; 3) batch startet nach 3 sekunden erneut die neue usb-backup.exe
+			; 3) batch startet nach 5 sekunden erneut die neue usb-backup.exe
 			FileDelete($sTempPath & $sAppName & ".cmd")
 			Local $sBatch = "ping -n 5 127.0.0.1 > NUL" & @CRLF
 			$sBatch &= 'start /D "' & DirName(@ScriptFullPath) & '" ' & BaseName(@ScriptFullPath)
