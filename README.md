@@ -69,16 +69,13 @@ software [7-Zip] is used.
 
 ## Download
 
-- [32bit Version](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup.exe)
-- [64bit Version](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup_x64.exe)
-- xxx: table hier rein...
-
+- [USB-Backup.exe](https://mcmilk.de/projects/USB-Backup/dl/latest/USB-Backup.exe)
 
 ## See Also
 
 - [AutoIT Homepage](https://www.autoitscript.com)
 - [7-Zip Homepage](http://www.7-zip.org/)
-- [7-Zip Zstd Homepage](https://github.com/mcmilk/7-Zip-Zstd)
+- [7-Zip Zstd Homepage](https://github.com/mcmilk/7-Zip-zstd)
 - [USB-Backup Homepage](https://mcmilk.de/projects/USB-Backup)
 
 [7-Zip]: http://www.7-zip.org/
