@@ -2660,10 +2660,10 @@ EndFunc   ;==>DrawSpaceUsageStatus
 ; ===============================================================================================================================
 Func GetWindowBkColor()
 	Local $iOpt = Opt("WinWaitDelay", 10)
-	Local $hWnd = GUICreate("", 2, 2, 1, 1, $WS_POPUP, $WS_EX_TOOLWINDOW)
+	Local $hWnd = GUICreate("", 11, 11, 1, 1, $WS_POPUP, $WS_EX_TOOLWINDOW)
 	GUISetState()
 	WinWait($hWnd)
-	Local $iColor = PixelGetColor(1, 1, $hWnd)
+	Local $iColor = PixelGetColor(5, 5, $hWnd)
 	GUIDelete($hWnd)
 	Opt("WinWaitDelay", $iOpt)
 	Return $iColor

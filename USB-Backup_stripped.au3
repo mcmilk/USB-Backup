@@ -5138,10 +5138,10 @@ Return
 EndFunc
 Func _1ja()
 Local $8k = Opt("WinWaitDelay", 10)
-Local $2r = GUICreate("", 2, 2, 1, 1, 0x80000000, 0x00000080)
+Local $2r = GUICreate("", 11, 11, 1, 1, 0x80000000, 0x00000080)
 GUISetState()
 WinWait($2r)
-Local $8h = PixelGetColor(1, 1, $2r)
+Local $8h = PixelGetColor(5, 5, $2r)
 GUIDelete($2r)
 Opt("WinWaitDelay", $8k)
 Return $8h
