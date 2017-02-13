@@ -1,13 +1,8 @@
-0.5.0.6
+0.5.0.5
 =======
 - update of 7z.dll
   - additional support of zstd v1.1.3 and lz4 v1.7.5
 - binaries are not compressed with upx or mpress
-
-0.5.0.5
-=======
-- update of 7z.dll to zstd v0.8.0
-- fix: the executable was not signed with timestamp
 
 0.5.0.4
 =======
