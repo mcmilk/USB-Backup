@@ -1,7 +1,19 @@
+0.5.0.6
+=======
+- update of 7z.dll
+  - additional support of zstd v1.1.3 and lz4 v1.7.5
+- binaries are not compressed with upx or mpress
+
+0.5.0.5
+=======
+- update of 7z.dll to zstd v0.8.0
+- fix: the executable was not signed with timestamp
+
 0.5.0.4
 =======
 - only one binary with support for 32bit and 64bit (VSS, 7-Zip)
-- update of 7z.dll to zstd v0.7.2 (0.8?)
+- update of 7z.dll to zstd v0.7.2
+- added small fix for correct background in the fflabels
 
 0.5.0.3
 =======

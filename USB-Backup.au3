@@ -1,13 +1,11 @@
 ﻿#NoTrayIcon
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=USB-Backup.ico
-#AutoIt3Wrapper_Compression=4
-#AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Homepage: https://www.mcmilk.de/projects/USB-Backup/
 #AutoIt3Wrapper_Res_Description=Encrypted Backup on external Storage
-#AutoIt3Wrapper_Res_Fileversion=0.5.0.4
-#AutoIt3Wrapper_Res_ProductVersion=0.5.0.4
-#AutoIt3Wrapper_Res_LegalCopyright=© 2014 - 2016 Tino Reichardt
+#AutoIt3Wrapper_Res_Fileversion=0.5.0.5
+#AutoIt3Wrapper_Res_ProductVersion=0.5.0.5
+#AutoIt3Wrapper_Res_LegalCopyright=© 2014 - 2017 Tino Reichardt
 #AutoIt3Wrapper_Res_Language=1031
 #AutoIt3Wrapper_Res_Field=Productname|USB-Backup
 #AutoIt3Wrapper_Res_Field=CompanyName|Tino Reichardt / LKEE
@@ -17,7 +15,6 @@
 #AutoIt3Wrapper_Res_Icon_Add=icos\05.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\06.ico
 #AutoIt3Wrapper_Run_After=echo %fileversion% > prog.txt
-#AutoIt3Wrapper_Run_After=mpress -s -r -q USB-Backup.exe
 #AutoIt3Wrapper_Run_After=signtool sign /v /tr http://time.certum.pl/ /f USB-Backup.p12 /p pass USB-Backup.exe
 #AutoIt3Wrapper_Run_Tidy=y
 #AutoIt3Wrapper_Run_Au3Stripper=y
@@ -25,7 +22,7 @@
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs
-	Copyright © 2014 - 2016 Tino Reichardt
+	Copyright © 2014 - 2017 Tino Reichardt
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License Version 2, as
@@ -38,7 +35,7 @@
 #ce
 
 ; ctime: /TR 2014-04-16
-; mtime: /TR 2016-08-03
+; mtime: /TR 2017-02-13
 
 Opt("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2 + 4)
@@ -77,11 +74,7 @@ Opt("WinDetectHiddenText", 1)
 #include "DrawPie.au3"
 ; #include "PrintFromArray.au3"
 
-; #include "USB-Backup_Tools.au3"
-#include "USB-Backup_Tools_xany.au3"
-
-; die 64bit version ist an sich kleiner...
-; #include "USB-Backup_Tools_x64.au3"
+#include "USB-Backup_Tools.au3"
 
 ; Titel, Name und so weiter definieren...
 Global Const $sAppName = "USB-Backup"
