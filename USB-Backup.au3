@@ -14,8 +14,7 @@
 #AutoIt3Wrapper_Res_Icon_Add=icos\04.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\05.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\06.ico
-#AutoIt3Wrapper_Run_After=echo %fileversion% > prog.txt
-#AutoIt3Wrapper_Run_After=signtool sign /v /tr http://time.certum.pl/ /f USB-Backup.p12 /p pass USB-Backup.exe
+#AutoIt3Wrapper_Run_After=rem signtool sign /v /tr http://time.certum.pl/ /f USB-Backup.p12 /p pass USB-Backup.exe
 #AutoIt3Wrapper_Run_Tidy=y
 #AutoIt3Wrapper_Run_Au3Stripper=y
 #Au3Stripper_Parameters=/pe /sf /sv /rm /mi 6
@@ -166,7 +165,7 @@ Global $sChmVersion = "0"
 Global $sIniVersion = "6"
 
 ; TrayMenu Variablen, welche global sein müssen
-Global $aTrayItems[1] = [0]; alle ID's der Controls
+Global $aTrayItems[1] = [0] ; alle ID's der Controls
 Global $aBackupTray[1] = [0] ; ID's der "Sicherung auf X:" Controls
 Global $aIndexEditTray[1] = [0] ; ID's der "Index von X: bearbeiten" Controls
 Global $aIndexSaveTray[1] = [0] ; ID's der "Index von X: speichern" Controls
@@ -1726,6 +1725,24 @@ Func ReadIndexFile($sIndexFile, $sPassword)
 EndFunc   ;==>ReadIndexFile
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: BackupIndexFile
+; Description ...: Erstellt Backup der verschlüsselten Index Datei
+; Syntax ........: BackupIndexFile(IndexFile, OldFilename)
+; Author ........: Tino Reichardt
+; Modified ......: 25.04.2017
+; ===============================================================================================================================
+Func BackupIndexFile($sFileName, $sOldFilename)
+
+	; lösche zu altes backup
+	If FileExists($sOldFilename) Then FileDelete($sOldFilename)
+	If Not FileExists($sFileName) Then Return
+
+	If FileMove($sFileName, $sOldFilename) <> 1 Then
+		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sFileName))
+	EndIf
+EndFunc   ;==>BackupIndexFile
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: UpdateIndexFile
 ; Description ...: Erstellt verschlüsselte Index Datei und wenn nötig auch diverse Standardwerte
 ; Syntax ........: UpdateIndexFile(id of stick)
@@ -1779,13 +1796,34 @@ Func UpdateIndexFile($id)
 	EndIf
 
 	Local $cData = MyEncrypt($sData, $sPassword)
+	Local $sIndexFileTemp = $sIndexFile & ".new"
 	DirCreate($sBackupPath)
-	Local $hFile = FileOpen($sIndexFile, $FO_OVERWRITE)
-	If FileWrite($hFile, $cData) <> 1 Then
-		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFile))
+	Local $hFile = FileOpen($sIndexFileTemp, $FO_OVERWRITE)
+	If $hFile = -1 Then
+		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+		Return ""
 	EndIf
-	FileFlush($hFile)
-	FileClose($hFile)
+
+	If FileWrite($hFile, $cData) <> 1 Then
+		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+	EndIf
+
+	If FileFlush($hFile) <> True Then
+		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+	EndIf
+
+	If FileClose($hFile) <> 1 Then
+		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+	EndIf
+
+	; genereate backups of the index
+	For $i = 20 To 1 Step -1
+		Local $sOld = $sIndexFile & ".old" & $i
+		Local $sNew = $sIndexFile & ".old" & $i + 1
+		BackupIndexFile($sOld, $sNew)
+	Next
+	BackupIndexFile($sIndexFile, $sIndexFile & ".old1")
+	BackupIndexFile($sIndexFileTemp, $sIndexFile)
 
 	Return
 EndFunc   ;==>UpdateIndexFile
