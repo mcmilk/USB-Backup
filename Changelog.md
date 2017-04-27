@@ -1,3 +1,12 @@
+0.5.0.6
+=======
+- fix problems with german umlaut characters (הצü)
+- generate backups of old index files
+- update of 7-Zip dll
+  - ZStandard Version 1.1.4
+  - LZ4 Version 1.7.5
+  - LZ5 Version 1.5
+
 0.5.0.5
 =======
 - update of 7z.dll

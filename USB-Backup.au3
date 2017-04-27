@@ -1,10 +1,11 @@
-﻿#NoTrayIcon
+#NoTrayIcon
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=USB-Backup.ico
+#AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Homepage: https://www.mcmilk.de/projects/USB-Backup/
 #AutoIt3Wrapper_Res_Description=Encrypted Backup on external Storage
-#AutoIt3Wrapper_Res_Fileversion=0.5.0.5
-#AutoIt3Wrapper_Res_ProductVersion=0.5.0.5
+#AutoIt3Wrapper_Res_Fileversion=0.5.0.6
+#AutoIt3Wrapper_Res_ProductVersion=0.5.0.6
 #AutoIt3Wrapper_Res_LegalCopyright=© 2014 - 2017 Tino Reichardt
 #AutoIt3Wrapper_Res_Language=1031
 #AutoIt3Wrapper_Res_Field=Productname|USB-Backup
@@ -14,7 +15,6 @@
 #AutoIt3Wrapper_Res_Icon_Add=icos\04.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\05.ico
 #AutoIt3Wrapper_Res_Icon_Add=icos\06.ico
-#AutoIt3Wrapper_Run_After=rem signtool sign /v /tr http://time.certum.pl/ /f USB-Backup.p12 /p pass USB-Backup.exe
 #AutoIt3Wrapper_Run_Tidy=y
 #AutoIt3Wrapper_Run_Au3Stripper=y
 #Au3Stripper_Parameters=/pe /sf /sv /rm /mi 6
@@ -34,7 +34,7 @@
 #ce
 
 ; ctime: /TR 2014-04-16
-; mtime: /TR 2017-02-13
+; mtime: /TR 2017-04-27
 
 Opt("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2 + 4)
@@ -71,7 +71,7 @@ Opt("WinDetectHiddenText", 1)
 #include "FFLabels.au3"
 #include "Sha3.au3"
 #include "DrawPie.au3"
-; #include "PrintFromArray.au3"
+;#include "PrintFromArray.au3"
 
 #include "USB-Backup_Tools.au3"
 
@@ -133,8 +133,8 @@ Global $sHelpTopic = "usage.html"
 Global $hHelpHandle
 
 ; diese globals sind auch als Option in der INI anpassbar
-Global $s7ZipCreateCmd = '7zg-mini a "%A" %o -m0=zstd -mx2 -ms=off -mhe -slp -ssc -ssw -scsWIN -p"%P" "%p"'
-Global $s7ZipUpdateCmd = '7zg-mini u "%A" %o -m0=zstd -mx2 -ms=off -mhe -slp -ssc -ssw -scsWIN -p"%P" -u- -up0q3r2x2y2z0w2!"%U" "%p"'
+Global $s7ZipCreateCmd = '7zg-mini a "%A" %o -m0=zstd -mx2 -ms=on -mhe -slp -ssc -ssw -scsWIN -p"%P" "%p"'
+Global $s7ZipUpdateCmd = '7zg-mini u "%A" %o -m0=zstd -mx2 -ms=on -mhe -slp -ssc -ssw -scsWIN -p"%P" -u- -up0q3r2x2y2z0w2!"%U" "%p"'
 Global $sDebug7ZipCmd = "0"
 
 ; Priority for the 7-Zip Commands: IDLE_PRIORITY_CLASS / NORMAL_PRIORITY_CLASS
@@ -147,7 +147,7 @@ Global $sShowEditConfig = "1"
 Global $sShowEditIndex = "0"
 Global $sShowWriteIndex = "0"
 Global $sShowStatusMessage = "1"
-Global $sEnableVSS = "1"
+Global $sEnableVSS = "0"
 Global $sDebugVSCSCCmd = "0"
 Global $sUsePowerPlan = "1"
 Global $sDebugPowerPlan = "0"
@@ -1580,19 +1580,6 @@ Func MyPKDF($sKey, $rounds = 1000)
 EndFunc   ;==>MyPKDF
 
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: MyEncrypt()
-; Description ...: Benutzerpasswort ein wenig besser machen, TODO=scrypt?
-; Syntax ........: MyEncrypt(data)
-; Author ........: Tino Reichardt
-; Modified ......: 21.01.2015
-; ===============================================================================================================================
-Func MyEncrypt($scData, $sPassword)
-	; wir nutzen UTF8 ... vorher wandeln?
-	Local $cData = _Crypt_EncryptData($scData, MyPKDF($sPassword), $CALG_AES_256)
-	Return $cData
-EndFunc   ;==>MyEncrypt
-
-; #FUNCTION# ====================================================================================================================
 ; Name ..........: MyMiniHash()
 ; Description ...: gibt einen "kryptischen" Pfad zurück
 ; Syntax ........: MyMiniHash(pfad)
@@ -1638,15 +1625,16 @@ EndFunc   ;==>GetExcludeFile_XR
 ; Modified ......: 01.04.2015
 ; ===============================================================================================================================
 Func GetTempIndex($id, $iMode = 0)
-	Static $sFsType = ""
-	If $sFsType = "" Then $sFsType = DriveGetFileSystem(StringLeft($sTempPath, 2))
+	#cs
+		Static $sFsType = ""
+		If $sFsType = "" Then $sFsType = DriveGetFileSystem(StringLeft($sTempPath, 2))
 
-	If $sFsType = "NTFS" Then
+		If $sFsType = "NTFS" Then
 		; in einem stream verstecken...
 		If $iMode <> 0 Then Return $sTempPath & "Index"
 		Return $sTempPath & "Index:" & $id & $aCurrentSticks[$id][$eDriveLetter] & ".ini"
-	EndIf
-
+		EndIf
+	#ce
 	; standard
 	Return $sTempPath & "Index-" & $id & $aCurrentSticks[$id][$eDriveLetter] & ".ini"
 EndFunc   ;==>GetTempIndex
@@ -1663,7 +1651,7 @@ Func FileDeleteSave($id)
 	Local $sFileName = GetTempIndex($id)
 
 	; Datei öffnen, verschlüsseln, schreiben, flushen, schließen, löschen
-	Local $hFile = FileOpen($sFileName, $FO_READ + $FO_OVERWRITE)
+	Local $hFile = FileOpen($sFileName, $FO_OVERWRITE)
 	If $hFile = -1 Then Return
 	FileSetPos($hFile, 0, $FILE_BEGIN)
 	Local $sPlain = FileRead($hFile)
@@ -1677,17 +1665,28 @@ Func FileDeleteSave($id)
 EndFunc   ;==>FileDeleteSave
 
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: MyDecrypt()
-; Description ...: Benutzerpasswort ein wenig besser machen, TODO=scrypt?
-; Syntax ........: MyDecrypt(data)
+; Name ..........: MyEncrypt()
+; Description ...: Daten verschlüsseln und zurück geben
+; Syntax ........: MyEncrypt(cleartext data, password)
 ; Author ........: Tino Reichardt
 ; Modified ......: 21.01.2015
 ; ===============================================================================================================================
-Func MyDecrypt($cData, $sPassword)
-	; wir nutzen UTF8
-	Local $sData = String(BinaryToString(_Crypt_DecryptData($cData, MyPKDF($sPassword), $CALG_AES_256), 4))
-	; ConsoleWrite($sData)
-	Return $sData
+Func MyEncrypt($scData, $sPassword)
+	Local $cData = _Crypt_EncryptData($scData, MyPKDF($sPassword), $CALG_AES_256)
+	Return $cData
+EndFunc   ;==>MyEncrypt
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: MyDecrypt()
+; Description ...: Daten entschlüsseln und zurück geben
+; Syntax ........: MyDecrypt(encoded datam password)
+; Author ........: Tino Reichardt
+; Modified ......: 21.01.2015
+; ===============================================================================================================================
+Func MyDecrypt($seData, $sPassword)
+	Local $scData = _Crypt_DecryptData($seData, MyPKDF($sPassword), $CALG_AES_256)
+	If Not IsBinary($scData) Then Return ""
+	Return BinaryToString($scData)
 EndFunc   ;==>MyDecrypt
 
 ; #FUNCTION# ====================================================================================================================
@@ -1698,27 +1697,19 @@ EndFunc   ;==>MyDecrypt
 ; Modified ......: 21.01.2015
 ; ===============================================================================================================================
 Func ReadIndexFile($sIndexFile, $sPassword)
-	Local $cData = FileRead($sIndexFile)
+	Local $hFile = FileOpen($sIndexFile)
+	Local $cData = FileRead($hFile)
 	If @error <> 0 Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[5], $sIndexFile))
+		FileClose($hFile)
 		Return ""
 	EndIf
+	FileClose($hFile)
 
 	Local $sData = MyDecrypt($cData, $sPassword)
-	If @error <> 0 Then
+	If $sData = "" Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[6], $sIndexFile))
-		Return ""
 	EndIf
-
-	; am Anfang vom Index steht IMMER [USB-Backup]
-	; ConsoleWrite("ReadIndexFile() StringLen($sData)= " & StringLen($cData) & @CRLF)
-	; ConsoleWrite("data = [[[" & @CRLF & $sData & @CRLF & "]]]" & @CRLF)
-
-	; das hier passt nicht immer, weil ini dateien eben nicht ganz so statisch sind, wie ich gern hätte... /TR
-	;	If StringCompare(StringLeft($sData, 12), "[" & $sAppName & "]") <> 0 Then
-	;		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[7]))
-	;		Return ""
-	;	EndIf
 
 	; wenn wir bis hier hin durch sind, scheint alles okay zu sein ;)
 	Return $sData ; success
@@ -1754,51 +1745,64 @@ Func UpdateIndexFile($id)
 	Local $sPassword = $aCurrentSticks[$id][$ePassword]
 	Local $sIndexFile = $sBackupPath & "Index"
 	Local $sIndexTemp = GetTempIndex($id)
-	Local $sSection = $sAppName
 	Local $x
 
+	DirCreate($sBackupPath)
+
 	; fix not existing entries, if needed
-	$x = IniRead($sIndexTemp, $sSection, "cdate", GetCurrentDate())
-	IniWrite($sIndexTemp, $sSection, "cdate", $x)
-	$x = IniRead($sIndexTemp, $sSection, "ctime", GetCurrentTime())
-	IniWrite($sIndexTemp, $sSection, "ctime", $x)
-	$x = IniRead($sIndexTemp, $sSection, "cts", GetTimeStamp())
-	IniWrite($sIndexTemp, $sSection, "cts", $x)
+	$x = IniRead($sIndexTemp, $sAppName, "cdate", GetCurrentDate())
+	IniWrite($sIndexTemp, $sAppName, "cdate", $x)
+	$x = IniRead($sIndexTemp, $sAppName, "ctime", GetCurrentTime())
+	IniWrite($sIndexTemp, $sAppName, "ctime", $x)
+	$x = IniRead($sIndexTemp, $sAppName, "cts", GetTimeStamp())
+	IniWrite($sIndexTemp, $sAppName, "cts", $x)
 
 	; this must be handled with a bit of care...
-	$sSaltValue = IniRead($sIndexTemp, $sSection, "SaltValue", "0")
+	$sSaltValue = IniRead($sIndexTemp, $sAppName, "SaltValue", "0")
 	If $sSaltValue = "0" Then
 		; generate some nice random salt, will be used in all MyMiniHash() operations later
 		$sSaltValue = StringMid(MyPKDF(_WinAPI_CreateGUID(), 20), 3)
-		IniWrite($sIndexTemp, $sSection, "SaltValue", $sSaltValue)
+		IniWrite($sIndexTemp, $sAppName, "SaltValue", $sSaltValue)
 	EndIf
 
+	;ConsoleWrite("UpdateIndexFile() Tempfile = " & $sIndexTemp & @CRLF)
+	;_PrintFromArray($aFilePaths)
+	; XXX
+
 	For $i = 1 To $aFilePaths[0]
-		; jedes backup verzeichnis hat einen cts (creation timestamp)
-		$x = IniRead($sIndexTemp, $aFilePaths[$i], "cts", GetTimeStamp())
-		IniWrite($sIndexTemp, $aFilePaths[$i], "cts", $x)
+		Local $sSection = $aFilePaths[$i]
+
+		; jedes backup verzeichnishat einen cts (creation timestamp)
+		$x = IniRead($sIndexTemp, $sSection, "cts", GetTimeStamp())
+		IniWrite($sIndexTemp, $sSection, "cts", $x)
 
 		; jedes backup verzeichnis hat einen fts (timestamp letztes full backup)
-		$x = IniRead($sIndexTemp, $aFilePaths[$i], "fts", "0")
-		IniWrite($sIndexTemp, $aFilePaths[$i], "fts", $x)
+		$x = IniRead($sIndexTemp, $sSection, "fts", "0")
+		IniWrite($sIndexTemp, $sSection, "fts", $x)
+
+		; ConsoleWrite("UpdateIndexFile() IniWrite S=" & $sSection & @CRLF)
 	Next
 
+	; ConsoleWrite("UpdateIndexFile() FileGetEncoding()=" & FileGetEncoding($sIndexTemp) & @CRLF)
+
 	; save latest mofification time
-	IniWrite($sIndexTemp, $sSection, "mdate", GetCurrentDate())
-	IniWrite($sIndexTemp, $sSection, "mtime", GetCurrentTime())
-	IniWrite($sIndexTemp, $sSection, "mts", GetTimeStamp())
+	IniWrite($sIndexTemp, $sAppName, "mdate", GetCurrentDate())
+	IniWrite($sIndexTemp, $sAppName, "mtime", GetCurrentTime())
+	IniWrite($sIndexTemp, $sAppName, "mts", GetTimeStamp())
 
 	; read it, encrypt it, store it on external drive
-	Local $sData = FileRead($sIndexTemp)
+	Local $hFile = FileOpen($sIndexTemp)
+	Local $sData = FileRead($hFile)
 	If @error <> 0 Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[5], $sIndexTemp))
 		Return ""
 	EndIf
+	FileClose($hFile)
 
 	Local $cData = MyEncrypt($sData, $sPassword)
 	Local $sIndexFileTemp = $sIndexFile & ".new"
-	DirCreate($sBackupPath)
-	Local $hFile = FileOpen($sIndexFileTemp, $FO_OVERWRITE)
+	; neue temp index file
+	$hFile = FileOpen($sIndexFileTemp, $FO_OVERWRITE)
 	If $hFile = -1 Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
 		Return ""
@@ -1806,14 +1810,17 @@ Func UpdateIndexFile($id)
 
 	If FileWrite($hFile, $cData) <> 1 Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+		Return ""
 	EndIf
 
 	If FileFlush($hFile) <> True Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+		Return ""
 	EndIf
 
 	If FileClose($hFile) <> 1 Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[8], $sIndexFileTemp))
+		Return ""
 	EndIf
 
 	; genereate backups of the index
@@ -1886,7 +1893,7 @@ Func GetPasswordForID($id)
 	FileDeleteSave($id)
 
 	; temporären Klartext Index erzeugen
-	Local $hFile = FileOpen($sIndexTemp, $FO_OVERWRITE)
+	Local $hFile = FileOpen($sIndexTemp, $FO_OVERWRITE + $FO_ANSI)
 	FileWrite($hFile, $sData)
 	FileFlush($hFile)
 	FileClose($hFile)
@@ -2589,7 +2596,9 @@ EndFunc   ;==>ManageBackups_TV
 ; ===============================================================================================================================
 Func GetOLDFilePaths($sIndexTemp, ByRef $aOldPaths)
 	Local $aOldBackups = IniReadSectionNames($sIndexTemp)
-	_ArrayDelete($aOldBackups, 0) ; delete counter
+
+	; delete counter
+	_ArrayDelete($aOldBackups, 0)
 	While UBound($aOldBackups)
 		Local $s = _ArrayPop($aOldBackups)
 		Local $sFound = "no"
@@ -2600,6 +2609,8 @@ Func GetOLDFilePaths($sIndexTemp, ByRef $aOldPaths)
 		If $sFound = "yes" Then ContinueLoop
 		_ArrayAdd($aOldPaths, $s) ; ist alt
 	WEnd
+
+	; setup counter
 	$aOldPaths[0] = UBound($aOldPaths) - 1
 EndFunc   ;==>GetOLDFilePaths
 
@@ -2752,6 +2763,8 @@ Func ManageBackups($id)
 	; TreeView erzeugen...
 	Dim $aOldPaths[1]
 	GetOLDFilePaths($sIndexTemp, $aOldPaths)
+	; _PrintFromArray($aOldPaths)
+
 	ManageBackups_TV($id, $tv, $aFilePaths, $aBackups, $aBackupTodo)
 	ManageBackups_TV($id, $tv, $aOldPaths, $aBackups, $aBackupTodo, 0x888888)
 	;GUISetState(@SW_SHOW)
@@ -4031,6 +4044,10 @@ Func FinishSevenZip($id, $aBackupTodo, ByRef $aSevenZip, $i)
 	Local $sPath = $aBackupTodo[$i][4] ; path to backup
 	Local $sArchiv = $aBackupTodo[$i][5] ; basis archiv
 	Local $sRuntime = GetTimeStamp() - $sTimeStamp
+
+	Local $iEncoding = FileGetEncoding($sIndexTemp)
+	; XXX
+	; ConsoleWrite("FinishSevenZip() $sIndexTemp=" & $sIndexTemp & " $iEncoding=" & $iEncoding & @CRLF)
 
 	If $aBackupTodo[$i][0] = "a" Then
 		Local $sBytes = FileGetSize($sArchiv)
