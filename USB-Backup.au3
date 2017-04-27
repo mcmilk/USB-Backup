@@ -1625,16 +1625,14 @@ EndFunc   ;==>GetExcludeFile_XR
 ; Modified ......: 01.04.2015
 ; ===============================================================================================================================
 Func GetTempIndex($id, $iMode = 0)
-	#cs
-		Static $sFsType = ""
-		If $sFsType = "" Then $sFsType = DriveGetFileSystem(StringLeft($sTempPath, 2))
+	Static $sFsType = ""
+	If $sFsType = "" Then $sFsType = DriveGetFileSystem(StringLeft($sTempPath, 2))
 
-		If $sFsType = "NTFS" Then
+	If $sFsType = "NTFS" Then
 		; in einem stream verstecken...
 		If $iMode <> 0 Then Return $sTempPath & "Index"
 		Return $sTempPath & "Index:" & $id & $aCurrentSticks[$id][$eDriveLetter] & ".ini"
-		EndIf
-	#ce
+	EndIf
 	; standard
 	Return $sTempPath & "Index-" & $id & $aCurrentSticks[$id][$eDriveLetter] & ".ini"
 EndFunc   ;==>GetTempIndex
@@ -1765,10 +1763,6 @@ Func UpdateIndexFile($id)
 		IniWrite($sIndexTemp, $sAppName, "SaltValue", $sSaltValue)
 	EndIf
 
-	;ConsoleWrite("UpdateIndexFile() Tempfile = " & $sIndexTemp & @CRLF)
-	;_PrintFromArray($aFilePaths)
-	; XXX
-
 	For $i = 1 To $aFilePaths[0]
 		Local $sSection = $aFilePaths[$i]
 
@@ -1782,7 +1776,6 @@ Func UpdateIndexFile($id)
 
 		; ConsoleWrite("UpdateIndexFile() IniWrite S=" & $sSection & @CRLF)
 	Next
-
 	; ConsoleWrite("UpdateIndexFile() FileGetEncoding()=" & FileGetEncoding($sIndexTemp) & @CRLF)
 
 	; save latest mofification time
