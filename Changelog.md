@@ -1,3 +1,16 @@
+0.5.0.7
+=======
+- fix again problems with opening the Index file
+- generate only one backup of Index, delete all other
+- update of 7-Zip dll, supported methods are:
+  - Brotli v.1.0.1
+  - Lizard v1.0
+  - LZ4 v1.8.0
+  - LZ5 v1.5
+  - Zstandard v1.3.2
+  - and these: Deflate, Deflate64, Bzip2, PPMD, LZMA, LZMA2
+- removed help file and it's functions (was never really finished)
+
 0.5.0.6
 =======
 - fix problems with german umlaut characters (הצü)

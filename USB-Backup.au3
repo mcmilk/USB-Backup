@@ -4,8 +4,8 @@
 #AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Homepage: https://www.mcmilk.de/projects/USB-Backup/
 #AutoIt3Wrapper_Res_Description=Encrypted Backup on external Storage
-#AutoIt3Wrapper_Res_Fileversion=0.5.0.6
-#AutoIt3Wrapper_Res_ProductVersion=0.5.0.6
+#AutoIt3Wrapper_Res_Fileversion=0.5.0.7
+#AutoIt3Wrapper_Res_ProductVersion=0.5.0.7
 #AutoIt3Wrapper_Res_LegalCopyright=© 2014 - 2017 Tino Reichardt
 #AutoIt3Wrapper_Res_Language=1031
 #AutoIt3Wrapper_Res_Field=Productname|USB-Backup
@@ -34,7 +34,7 @@
 #ce
 
 ; ctime: /TR 2014-04-16
-; mtime: /TR 2017-04-27
+; mtime: /TR 2017-11-08
 
 Opt("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2 + 4)
@@ -86,10 +86,9 @@ Global $sUpdateAppVersion = FileGetVersion(@ScriptFullPath)
 ; Update Funktion
 ; "version.txt" -> "$AppVer,$ChmVer\n"
 ; "USB-Backup.exe" -> @autostart
-; "USB-Backup.chm" -> @ %APPDATA%\USB-Backup (one Chm per Language)
 ; "de-DE.ini" -> @ %APPDATA%\Language.ini (wenn @OSLANG=0407)
 Global Const $sUpdateURL = "http://www.mcmilk.de/projects/USB-Backup/" ; with / @ end!!!
-Global $iHasNewUpdate = 0 ; 0=no update 1=new-exe 2=new-help 3=new-exe+help
+Global $iHasNewUpdate = 0 ; 0=no update 1=new-exe
 Global $aInetVersion = 0
 
 ; Standardmaße der App
@@ -124,13 +123,8 @@ Global $aCurrentSticksOkay[1] = [0]
 
 ; diverse globale Variablen, für schnellen Zugriff
 Global $sAppPath = @AppDataDir & "\" & $sAppName & "\"
-Global $sAppHelp = @AppDataDir & "\" & $sAppName & "\" & $sAppName & ".chm"
 Global $sTempPath = @TempDir & "\" & $sAppName & "-" & _WinAPI_CreateGUID() & "\"
 Global $sSaltValue = "0"
-
-; Startseite für F1 wird damit festgelegt:
-Global $sHelpTopic = "usage.html"
-Global $hHelpHandle
 
 ; diese globals sind auch als Option in der INI anpassbar
 Global $s7ZipCreateCmd = '7zg-mini a "%A" %o -m0=zstd -mx2 -ms=on -mhe -slp -ssc -ssw -scsWIN -p"%P" "%p"'
@@ -157,9 +151,6 @@ Global $sFileNameLen = "16"
 Global $sEditor = "notepad.exe"
 Global $sRunBeforeCmd = ""
 Global $sRunAfterCmd = ""
-
-; Standard = 0, da wir kein Setup haben und die Hilfe dadurch nie installiert wurde
-Global $sChmVersion = "0"
 
 ; +1 ,wenn sich Konfigurationsvariablen ändern und INI deshalb lieber komplett neu erstellt wird
 Global $sIniVersion = "6"
@@ -206,9 +197,6 @@ Func InitBackup()
 			;ConsoleWrite("delete: " & @TempDir & "\" & $sFileName & @CRLF)
 		WEnd
 	EndIf
-
-	; wenn DllOpen() -1 liefert, wird das bei ShowHelp() abgefangen
-	$hHelpHandle = DllOpen("HHCtrl.ocx")
 
 	; Start Crypto / GDI+
 	_Crypt_Startup()
@@ -265,9 +253,6 @@ EndFunc   ;==>DisableTrayMenu
 
 Func EnableTrayMenu()
 	DisableTrayMenu()
-
-	; wenn Tray an ist, wollen wir kein F1 mehr haben...
-	HotKeySet("{F1}")
 
 	If $iRunningBackup <> "0" Then
 		$iStatus = TrayCreateItem(Msg($mTaskTray[5]))
@@ -401,7 +386,6 @@ Func TrayInitMenu()
 
 			Case $iEditSettings
 				DisableTrayMenu()
-				SetupHelp("usage-Settings.html")
 				RunWait($sEditor & " " & $sAppPath & $sAppName & '.ini')
 				ReadConfiguration()
 				UpdateCurrentSticks()
@@ -458,7 +442,6 @@ Func TrayInitMenu()
 							EnableTrayMenu()
 							ExitLoop
 						EndIf
-						SetupHelp("usage-IndexSettings.html")
 						RunWait($sEditor & " " & GetTempIndex($id))
 						UpdateIndexFile($id)
 						EnableTrayMenu()
@@ -545,15 +528,16 @@ Func ReadConfiguration()
 	$sDebug7ZipCmd = IniRead($sInifile, "Options", "Debug7ZipCmd", $sDebug7ZipCmd)
 	$sFileNameLen = IniRead($sInifile, "Options", "FileNameLen", $sFileNameLen)
 	$sEditor = IniRead($sInifile, "Options", "Editor", $sEditor)
-	$sChmVersion = IniRead($sInifile, "Options", "ChmVersion", $sChmVersion)
 	$sRunBeforeCmd = IniRead($sInifile, "Options", "RunBeforeCmd", $sRunBeforeCmd)
 	$sRunAfterCmd = IniRead($sInifile, "Options", "RunAfterCmd", $sRunAfterCmd)
 	$sUsePowerPlan = IniRead($sInifile, "Options", "UsePowerPlan", $sUsePowerPlan)
 	$sDebugPowerPlan = IniRead($sInifile, "Options", "DebugPowerPlan", $sDebugPowerPlan)
 	$sShowStatusMessage = IniRead($sInifile, "Options", "ShowStatusMessage", $sShowStatusMessage)
 
+	; war nie fertig, werde ich wohl auch nie machen ;)
+	IniDelete($sInifile, "Options", "ChmVersion")
+
 	; hier wollen wir direkt mit integer arbeiten...
-	$sChmVersion = Int($sChmVersion)
 	$sFileNameLen = Int($sFileNameLen)
 	$sMaxFullBackups = Int($sMaxFullBackups)
 
@@ -614,7 +598,6 @@ Func WriteConfiguration()
 	IniWrite($sInifile, "Options", "FileNameLen", $sFileNameLen)
 	IniWrite($sInifile, "Options", "Editor", $sEditor)
 	IniWrite($sInifile, "Options", "IniVersion", $sIniVersion)
-	IniWrite($sInifile, "Options", "ChmVersion", $sChmVersion)
 	IniWrite($sInifile, "Options", "RunBeforeCmd", $sRunBeforeCmd)
 	IniWrite($sInifile, "Options", "RunAfterCmd", $sRunAfterCmd)
 	IniWrite($sInifile, "Options", "UsePowerPlan", $sUsePowerPlan)
@@ -894,7 +877,6 @@ EndFunc   ;==>RegisterStickDelete
 ; ===============================================================================================================================
 Func RegisterStick()
 	$hGUI = GUICreate(Msg($mHeadlines[2], $sTitle), $myWidth, $myHeight, -1, -1, $gGuiStyle, $gGuiExStyle)
-	SetupHelp("usage-RegisterStick.html")
 
 	; wir machen daraus ein 2D array:
 	Local $aCurrentRegistered[$aUSBSticks[0] + 1][3]
@@ -1043,7 +1025,6 @@ EndFunc   ;==>FindJunctions
 ; ===============================================================================================================================
 Func RegisterPath()
 	$hGUI = GUICreate(Msg($mHeadlines[3], $sTitle), $myWidth, $myHeight, -1, -1, $gGuiStyle, $gGuiExStyle)
-	SetupHelp("usage-RegisterPath.html")
 
 	; alle alten Standardpfade sind erstmal auch die aktuellen...
 	Local $aCurrentPaths = $aFilePaths
@@ -1093,7 +1074,6 @@ Func RegisterPath()
 				If $i = -1 Then ContinueLoop
 				; Tray aus und Hilfe Thema setzen
 				DisableTrayMenu()
-				SetupHelp("usage-Exclude.html")
 				; Sektion lesen/erstellen, Editor starten und dann INI updaten
 				Local $sCurrentPath = $aCurrentPaths[$i + 1]
 				Local $sExcludeFile
@@ -1121,7 +1101,6 @@ Func RegisterPath()
 				WinSetState($hGUI, "", @SW_ENABLE)
 				WinActivate($hGUI)
 				UpdateCurrentSticks()
-				SetupHelp("usage-RegisterPath.html")
 
 			Case $btnDel
 				Local $i = _GUICtrlListBox_GetCurSel($lstPath)
@@ -1446,7 +1425,6 @@ Func MyInputBox($title, $helpIndex, $text, $default = "", $style = "")
 	Local $top = @DesktopHeight / 2 - $height / 2
 
 	Local $hWnd = GUICreate($title, $width, $height, $left, $top, BitOR($WS_SYSMENU, $WS_CAPTION))
-	SetupHelp("$helpIndex")
 
 	GUICtrlCreateLabel($text, 40, 20, $width - 80, 20)
 	Local $id_INPUT
@@ -1494,7 +1472,6 @@ Func AboutBox()
 	Local $mail = "E-Mail: milky-usb-backup" & "@" & "mcmilk.de"
 
 	Local $hWnd = GUICreate($sTitle, $width, $height, $left, $top, BitOR($WS_SYSMENU, $WS_CAPTION))
-	$sHelpTopic = "usage-About.html"
 	Local $x = 50, $y = 40, $h = 21, $c, $a
 
 	GUISetFont(9)
@@ -1695,7 +1672,7 @@ EndFunc   ;==>MyDecrypt
 ; Modified ......: 21.01.2015
 ; ===============================================================================================================================
 Func ReadIndexFile($sIndexFile, $sPassword)
-	Local $hFile = FileOpen($sIndexFile)
+	Local $hFile = FileOpen($sIndexFile, $FO_ANSI)
 	Local $cData = FileRead($hFile)
 	If @error <> 0 Then
 		MsgBox($MB_OK, $sTitle, Msg($mErrorMessages[5], $sIndexFile))
@@ -1816,13 +1793,11 @@ Func UpdateIndexFile($id)
 		Return ""
 	EndIf
 
-	; genereate backups of the index
+	; delete old index backups (one is okay)
 	For $i = 20 To 1 Step -1
-		Local $sOld = $sIndexFile & ".old" & $i
-		Local $sNew = $sIndexFile & ".old" & $i + 1
-		BackupIndexFile($sOld, $sNew)
+		FileDelete($sIndexFile & ".old" & $i)
 	Next
-	BackupIndexFile($sIndexFile, $sIndexFile & ".old1")
+	BackupIndexFile($sIndexFile, $sIndexFile & ".old")
 	BackupIndexFile($sIndexFileTemp, $sIndexFile)
 
 	Return
@@ -2718,7 +2693,6 @@ Func ManageBackups($id)
 	Local $sBackupPath = $aCurrentSticks[$id][$eBackupPath]
 
 	$hGUI = GUICreate(Msg($mHeadlines[4], $sTitle, $aCurrentSticks[$id][$eFullDrive]), $myWidth, $myHeight, -1, -1, $gGuiStyle, $gGuiExStyle)
-	SetupHelp("usage-ManageBackups.html")
 
 	Local $lHeadline = GUICtrlCreateLabel(Msg($mLabels[43]), 8, 8, 458, 24)
 	GUICtrlSetFont(-1, 10)
@@ -3072,7 +3046,6 @@ Func CreateNewBackup($id, $aBackupTodo)
 	Local $sStatusText
 
 	$hGUI = GUICreate(Msg($mHeadlines[5], $sTitle), $myWidth, $myHeight, -1, -1, $gGuiStyle)
-	SetupHelp("usage-BackupStatus.html")
 
 	; Run Some Command before Backup... if the user wants multiple commands, he must use some batchfile...
 	If $sRunBeforeCmd <> "" Then RunWait($sRunBeforeCmd)
@@ -3117,7 +3090,6 @@ Func CreateNewBackup($id, $aBackupTodo)
 	; Status TrayMenu
 	$iRunningBackup = $hGUI
 	EnableTrayMenu()
-	SetupHelp("usage-BackupStatus.html")
 
 	#cs
 		von 7zip:
@@ -3533,7 +3505,6 @@ Func CreateNewBackup($id, $aBackupTodo)
 				EndIf
 			Case $iStatus
 				GUISetState(@SW_SHOW, $iRunningBackup)
-				SetupHelp("usage-BackupStatus.html") ; F1 Key wieder an
 				$iNeedRedraw = 1
 				ContinueLoop
 		EndSwitch
@@ -4235,11 +4206,6 @@ Func CheckForUpdate()
 	; new USB-Backup.exe Version?
 	$iHasNewUpdate += CheckVersions($sUpdateAppVersion, $aInetVersion[1])
 
-	If $sChmVersion < $aInetVersion[2] Then
-		; new USB-Backup.chm Version
-		$iHasNewUpdate += 2
-	EndIf
-
 	; Es ist ein Update verfügbar, soll es installiert werden ?
 	Local $sText
 	Switch $iHasNewUpdate
@@ -4293,20 +4259,7 @@ EndFunc   ;==>NewVersionHint
 Func DownloadUpdates()
 	Local $sFilePath, $iStatus = 0
 
-	; 1) Hilfe aktualisieren...
-	If BitAND($iHasNewUpdate, 2) Then
-		$sFilePath = $sTempPath & $sAppName & ".chm"
-		FileDelete($sFilePath)
-		$iStatus = DownloadFile($sUpdateURL & $sAppName & ".chm", $sFilePath, Msg($mLabels[64]))
-
-		If $iStatus = 0 Then
-			FileDelete($sAppHelp)
-			FileMove($sFilePath, $sAppHelp)
-			TrayTip($sAppName & " " & $sVersion, Msg($mMessages[18]), $iTrayTipTime, $TIP_ICONASTERISK)
-		EndIf
-	EndIf
-
-	; 2) Programm aktualisieren...
+	; 1) Programm aktualisieren...
 	If BitAND($iHasNewUpdate, 1) Then
 
 		; update herunter laden
@@ -4348,7 +4301,6 @@ Func DownloadUpdates()
 	EndIf
 
 	$iHasNewUpdate = 0
-	$sChmVersion = $aInetVersion[2]
 	WriteConfiguration()
 EndFunc   ;==>DownloadUpdates
 
@@ -4382,33 +4334,3 @@ Func DownloadFile($sURL, $sFile, $sInfo)
 
 	Return 0
 EndFunc   ;==>DownloadFile
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: SetupHelp
-; Description ...: Startseite und F1 Key für Hilfe setzen
-; Syntax ........: SetupHelp($sTopic)
-; Author ........: Tino Reichardt
-; Modified ......: 26.02.2015
-; ===============================================================================================================================
-Func SetupHelp($sTopic)
-	; F1 für Hilfe nutzen, wenn Hilfedatei da ist...
-	If Not FileExists($sAppHelp) Then Return
-	$sHelpTopic = $sTopic
-	HotKeySet("{F1}", "ShowHelp")
-EndFunc   ;==>SetupHelp
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: ShowHelp
-; Description ...: Hilfe anzeigen
-; Syntax ........: ShowHelp()
-; Author ........: Tino Reichardt
-; Modified ......: 26.02.2015
-; ===============================================================================================================================
-Func ShowHelp()
-	If $hHelpHandle = -1 Then Return
-	DllCall($hHelpHandle, "hwnd", "HtmlHelp", _
-			"hwnd", 0, _ ; default to calling window
-			"str", $sAppHelp & "::" & $sHelpTopic, _
-			"int", 0, _ ; HH_DISPLAY_TOPIC
-			"dword", 0) ; unused
-EndFunc   ;==>ShowHelp
