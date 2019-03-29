@@ -4,9 +4,9 @@
 #AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Homepage: https://www.mcmilk.de/projects/USB-Backup/
 #AutoIt3Wrapper_Res_Description=Encrypted Backup on external Storage
-#AutoIt3Wrapper_Res_Fileversion=0.5.0.7
-#AutoIt3Wrapper_Res_ProductVersion=0.5.0.7
-#AutoIt3Wrapper_Res_LegalCopyright=© 2014 - 2017 Tino Reichardt
+#AutoIt3Wrapper_Res_Fileversion=0.5.0.8
+#AutoIt3Wrapper_Res_ProductVersion=0.5.0.8
+#AutoIt3Wrapper_Res_LegalCopyright=© 2014 - 2019 Tino Reichardt
 #AutoIt3Wrapper_Res_Language=1031
 #AutoIt3Wrapper_Res_Field=Productname|USB-Backup
 #AutoIt3Wrapper_Res_Field=CompanyName|Tino Reichardt / LKEE
@@ -21,7 +21,7 @@
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs
-	Copyright © 2014 - 2017 Tino Reichardt
+	Copyright © 2014 - 2019 Tino Reichardt
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License Version 2, as
@@ -34,7 +34,7 @@
 #ce
 
 ; ctime: /TR 2014-04-16
-; mtime: /TR 2017-11-08
+; mtime: /TR 2019-03-29
 
 Opt("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2 + 4)
@@ -643,7 +643,8 @@ Func GetDriveInfos()
 	$aDrives[0][1] = 0
 
 	; für alle USB Festplatten / Sticks
-	Local $oq_drives = $objWMIService.ExecQuery("SELECT * FROM Win32_DiskDrive WHERE PNPDeviceID LIKE 'USBSTOR%'")
+	; Local $oq_drives = $objWMIService.ExecQuery("SELECT * FROM Win32_DiskDrive WHERE PNPDeviceID LIKE 'USBSTOR%'")
+	Local $oq_drives = $objWMIService.ExecQuery("SELECT * FROM Win32_DiskDrive WHERE MediaType = 'External hard disk media' Or MediaType = 'Removable media'")
 	For $drive In $oq_drives
 		If $drive.Status <> "OK" Then ContinueLoop
 
@@ -1475,7 +1476,7 @@ Func AboutBox()
 	Local $x = 50, $y = 40, $h = 21, $c, $a
 
 	GUISetFont(9)
-	$c = GUICtrlCreateLabel("© 2014 - 2016 Tino Reichardt / LKEE,", $x, $y + $h)
+	$c = GUICtrlCreateLabel("© 2014 - 2019 Tino Reichardt,", $x, $y + $h)
 	GUICtrlSetTip($c, $mail)
 	$a = ControlGetPos($hWnd, "", $c)
 	Local $web1 = GUICtrlCreateLabel("Homepage", $a[0] + $a[2] - 5, $y + $h)
@@ -1484,7 +1485,7 @@ Func AboutBox()
 	GUICtrlSetFont(-1, -1, -1, 4)
 	GUICtrlSetCursor(-1, 0)
 
-	$c = GUICtrlCreateLabel("© 1999 - 2016 Igor Pavlov (7-Zip),", $x, $y + $h * 3)
+	$c = GUICtrlCreateLabel("© 1999 - 2019 Igor Pavlov (7-Zip),", $x, $y + $h * 3)
 	$a = ControlGetPos($hWnd, "", $c)
 	Local $web2 = GUICtrlCreateLabel("www.7-zip.org", $a[0] + $a[2] - 5, $a[1])
 	GUICtrlSetColor(-1, $COLOR_BLUE)
